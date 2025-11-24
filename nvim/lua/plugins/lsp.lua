@@ -39,6 +39,10 @@ return {
       vim.lsp.enable 'eslint'
       vim.lsp.enable 'ts_ls'
       vim.lsp.enable 'lua_ls'
+      vim.lsp.enable 'emmet_language_server'
+      vim.lsp.config('emmet_language_server', {
+        filetypes = filetypes,
+      })
       vim.lsp.enable 'stylelint_lsp'
       vim.lsp.config('stylelint_lsp', {
         filetypes = filetypes,
