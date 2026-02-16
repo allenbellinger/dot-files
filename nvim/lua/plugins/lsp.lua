@@ -23,7 +23,9 @@ return {
       'folke/neodev.nvim',
     },
     config = function()
-      local filetypes = { 'astro', 'css', 'html', 'less', 'scss', 'sugarss', 'vue', 'wxss', 'typescript' }
+      local emmet_filetypes = { 'astro', 'css', 'html', 'less', 'scss', 'sugarss', 'vue', 'wxss', 'typescript' }
+      local stylelint_filetypes = { 'css', 'less', 'scss', 'typescript' }
+
       require('mason').setup()
       require('mason-lspconfig').setup {
         automatic_enable = false,
@@ -41,11 +43,11 @@ return {
       vim.lsp.enable 'lua_ls'
       vim.lsp.enable 'emmet_language_server'
       vim.lsp.config('emmet_language_server', {
-        filetypes = filetypes,
+        filetypes = emmet_filetypes,
       })
       vim.lsp.enable 'stylelint_lsp'
       vim.lsp.config('stylelint_lsp', {
-        filetypes = filetypes,
+        filetypes = stylelint_filetypes,
         settings = {
           stylelintplus = {
             autoFixOnSave = true,

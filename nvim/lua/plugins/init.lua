@@ -26,11 +26,11 @@ return {
   },
   {
     'saghen/blink.cmp',
-    build = 'cargo build --release',
+    version = '1.*',
     dependencies = {
       {
         'L3MON4D3/LuaSnip',
-        version = 'v2.*',
+        version = '2.*',
       },
       'folke/lazydev.nvim',
     },
@@ -65,6 +65,19 @@ return {
       fuzzy = { implementation = 'prefer_rust' },
       signature = { enabled = true },
     },
+  },
+  {
+    'nvim-java/nvim-java',
+    ft = 'java',
+    dependencies = {
+      'mason-org/mason.nvim',
+      'neovim/nvim-lspconfig',
+      'mason-org/mason-lspconfig.nvim',
+    },
+    config = function()
+      require('java').setup()
+      vim.lsp.enable 'jdtls'
+    end,
   },
   {
     'numToStr/Comment.nvim',
@@ -110,7 +123,6 @@ return {
         html = { 'prettierd' },
         htmlangular = { 'prettierd' },
         json = { 'prettierd' },
-        yaml = { 'prettierd' },
         markdown = { 'prettierd' },
       },
     },
