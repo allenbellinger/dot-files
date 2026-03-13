@@ -1,6 +1,5 @@
 theme = Everforest Dark Hard
-font-size = 14
+font-size = 16
 window-height = 510
 window-width = 1640
-font-family = Jetbrains Mono Nerd
-
+font-family = JetBrains Mono

@@ -76,13 +76,19 @@ return {
         {
           filter = {
             event = 'notify',
+            kind = '',
             find = 'No information available',
           },
           opts = { skip = true },
         },
-      },
-      presets = {
-        lsp_doc_border = true,
+        {
+          filter = {
+            event = 'msg_show',
+            kind = '',
+            find = 'written',
+          },
+          opts = { skip = true },
+        },
       },
     },
     dependencies = {
