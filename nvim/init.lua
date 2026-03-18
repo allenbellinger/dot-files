@@ -134,32 +134,5 @@ vim.diagnostic.config {
   },
 }
 
--- LuaSnip keymaps (deferred until LuaSnip is loaded)
-vim.api.nvim_create_autocmd('User', {
-  pattern = 'LazyLoad',
-  callback = function(args)
-    if args.data ~= 'LuaSnip' then
-      return
-    end
-    local luasnip = require 'luasnip'
-    vim.keymap.set({ 'i', 's' }, '<Tab>', function()
-      if luasnip.expand_or_jumpable() then
-        luasnip.expand_or_jump()
-      else
-        vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('<Tab>', true, false, true), 'n', false)
-      end
-    end, { silent = true })
-
-    vim.keymap.set({ 'i', 's' }, '<S-Tab>', function()
-      if luasnip.jumpable(-1) then
-        luasnip.jump(-1)
-      else
-        vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('<S-Tab>', true, false, true), 'n', false)
-      end
-    end, { silent = true })
-    return true -- remove this autocmd after firing
-  end,
-})
-
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et

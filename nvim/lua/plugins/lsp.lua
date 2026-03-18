@@ -74,7 +74,6 @@ return {
     keys = {
       { '<leader>rn', ':Lspsaga rename<cr>', desc = 'Rename' },
       { '<leader>ca', ':Lspsaga code_action<cr>', desc = 'Code action' },
-      { 'K', ':Lspsaga hover_doc<cr>' },
     },
     dependencies = {
       'nvim-treesitter/nvim-treesitter',

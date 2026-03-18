@@ -22,15 +22,12 @@ return {
   {
     'saghen/blink.cmp',
     version = '1.*',
+    event = { 'InsertEnter', 'CmdlineEnter' },
     dependencies = {
-      {
-        'L3MON4D3/LuaSnip',
-        version = '2.*',
-        build = 'make install_jsregexp',
-      },
       'folke/lazydev.nvim',
     },
     opts = {
+      keymap = { preset = 'default' },
       appearance = {
         nerd_font_variant = 'mono',
       },
@@ -43,7 +40,7 @@ return {
         },
       },
       sources = {
-        default = { 'lsp', 'path', 'snippets', 'lazydev' },
+        default = { 'lsp', 'path', 'lazydev' },
         providers = {
           lazydev = { name = 'LazyDev', module = 'lazydev.integrations.blink', score_offset = 100 },
           lsp = {
@@ -76,7 +73,6 @@ return {
           },
         },
       },
-      snippets = { preset = 'luasnip' },
       fuzzy = { implementation = 'prefer_rust' },
       signature = { enabled = true },
     },
