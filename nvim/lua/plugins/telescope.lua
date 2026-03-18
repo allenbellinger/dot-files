@@ -1,12 +1,6 @@
 return {
   'nvim-telescope/telescope-ui-select.nvim',
   {
-    'dharmx/telescope-media.nvim',
-    config = function()
-      require('telescope').load_extension 'media'
-    end,
-  },
-  {
     'nvim-telescope/telescope.nvim',
     version = '*',
     dependencies = {
@@ -16,12 +10,9 @@ return {
       'nvim-telescope/telescope-media-files.nvim',
     },
     config = function()
-      vim.api.nvim_set_keymap('n', '<leader>fb', ':Telescope file_browser', { noremap = true })
-
       -- [[ Configure Telescope ]]
       -- See `:help telescope` and `:help telescope.setup()`
       local telescope = require 'telescope'
-      local canned = require 'telescope._extensions.media.lib.canned'
       telescope.setup {
         defaults = {
           mappings = { i = { ['<C-u>'] = false, ['<C-d>'] = false } },
@@ -29,22 +20,8 @@ return {
         },
         extensions = {
           media_files = {
-            -- filetypes whitelist
-            -- defaults to {"png", "jpg", "mp4", "webm", "pdf"}
             filetypes = { 'png', 'webp', 'jpg', 'jpeg' },
-            -- find command (defaults to `fd`)
             find_cmd = 'rg',
-          },
-          media = {
-            backend = 'viu', -- image/gif backend
-            flags = {
-              viu = {
-                move = true, -- GIF preview
-              },
-            },
-            on_confirm_single = canned.single.copy_path,
-            on_confirm_muliple = canned.multiple.bulk_copy,
-            cache_path = vim.fn.stdpath 'cache' .. '/media',
           },
         },
         pickers = {
@@ -62,9 +39,10 @@ return {
       }
 
       telescope.load_extension 'media_files'
+      pcall(telescope.load_extension, 'ui-select')
 
       -- Enable telescope fzf native, if installed
-      pcall(require('telescope').load_extension, 'fzf')
+      pcall(telescope.load_extension, 'fzf')
       -- See `:help telescope.builtin`
       vim.keymap.set('n', '<leader>?', require('telescope.builtin').oldfiles, { desc = '[?] Find recently opened files' })
       vim.keymap.set('n', '<leader><space>', require('telescope.builtin').buffers, { desc = '[ ] Find existing buffers' })

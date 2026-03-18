@@ -3,35 +3,40 @@ return {
   {
     'mason-org/mason.nvim',
     lazy = false,
-    config = function()
-      require('mason').setup()
-    end,
-    opts = { ensure_installed = { 'prettierd' } },
+    opts = {
+      ensure_installed = {
+        -- LSP servers
+        'angular-language-server',
+        'eslint-lsp',
+        'typescript-language-server',
+        'lua-language-server',
+        'emmet-language-server',
+        'stylelint-lsp',
+        'rust-analyzer',
+        -- Formatters / linters
+        'prettierd',
+        'stylua',
+      },
+    },
   },
   {
     'mason-org/mason-lspconfig.nvim',
     lazy = false,
-    opts = { auto_install = true },
+    opts = {
+      auto_install = true,
+      automatic_enable = false,
+    },
   },
   {
     'neovim/nvim-lspconfig',
     lazy = false,
     dependencies = {
-      { 'mason-org/mason.nvim', config = true }, -- NOTE: Must be loaded before dependants
+      'mason-org/mason.nvim',
       'mason-org/mason-lspconfig.nvim',
-      'WhoIsSethDaniel/mason-tool-installer.nvim',
-      'folke/neodev.nvim',
     },
     config = function()
-      local emmet_filetypes = { 'astro', 'css', 'html', 'less', 'scss', 'sugarss', 'vue', 'wxss', 'typescript' }
-      local stylelint_filetypes = { 'css', 'less', 'scss', 'typescript' }
-
-      require('mason').setup()
-      require('mason-lspconfig').setup {
-        automatic_enable = false,
-      }
-      require('mason-tool-installer').setup {}
-      vim.api.nvim_command 'MasonToolsInstall'
+      local emmet_filetypes = { 'css', 'html', 'scss', 'typescript' }
+      local stylelint_filetypes = { 'css', 'scss', 'typescript' }
 
       vim.lsp.enable 'angularls'
       vim.lsp.enable 'eslint'
@@ -51,21 +56,26 @@ return {
           },
         },
       })
+      vim.lsp.enable 'rust_analyzer'
+      vim.lsp.enable 'yamlls'
+
       vim.keymap.set('n', '<leader>gd', vim.lsp.buf.definition, { desc = 'Go to definition' })
       vim.keymap.set('n', '<leader>gr', vim.lsp.buf.references, { desc = 'Go to references' })
+      vim.keymap.set('n', '<leader>gi', vim.lsp.buf.implementation, { desc = 'Go to implementation' })
+      vim.keymap.set('n', '<leader>gt', vim.lsp.buf.type_definition, { desc = 'Go to type definition' })
+      vim.keymap.set('n', '<leader>ws', vim.lsp.buf.workspace_symbol, { desc = 'Workspace symbols' })
+      vim.keymap.set('n', '<leader>ds', vim.lsp.buf.document_symbol, { desc = 'Document symbols' })
       vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostics list' })
-
-      vim.diagnostic.config { virtual_text = true }
     end,
   },
   {
     'nvimdev/lspsaga.nvim',
-    config = function()
-      require('lspsaga').setup {}
-      vim.keymap.set('n', '<leader>rn', ':Lspsaga rename<cr>', { desc = 'Rename' })
-      vim.keymap.set('n', '<leader>ca', ':Lspsaga code_action<cr>', { desc = 'Code action' })
-      vim.keymap.set('n', 'K', ':Lspsaga hover_doc<cr>')
-    end,
+    opts = {},
+    keys = {
+      { '<leader>rn', ':Lspsaga rename<cr>', desc = 'Rename' },
+      { '<leader>ca', ':Lspsaga code_action<cr>', desc = 'Code action' },
+      { 'K', ':Lspsaga hover_doc<cr>' },
+    },
     dependencies = {
       'nvim-treesitter/nvim-treesitter',
       'nvim-tree/nvim-web-devicons',

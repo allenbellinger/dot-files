@@ -1,16 +1,19 @@
-package.path = package.path .. ';' .. vim.fn.expand '$HOME' .. '/.luarocks/share/lua/5.1/?/init.lua'
-package.path = package.path .. ';' .. vim.fn.expand '$HOME' .. '/.luarocks/share/lua/5.1/?.lua'
-package.cpath = package.cpath .. ';' .. vim.fn.expand '$HOME' .. '/.luarocks/lib/lua/5.1/?.so'
--- tell neovim to use mise version of java
-vim.cmd 'set expandtab'
-vim.cmd 'set tabstop=2'
-vim.cmd 'set softtabstop=2'
-vim.cmd 'set shiftwidth=2'
-vim.cmd 'set textwidth=80'
+-- Default indentation (vim-sleuth will override per-buffer based on file contents)
+vim.opt.expandtab = true
+vim.opt.tabstop = 2
+vim.opt.softtabstop = 2
+vim.opt.shiftwidth = 2
+vim.opt.textwidth = 80
 --Set <space> as the leader key See `:help mapleader` NOTE: Must happen before
 --plugins are required (otherwise wrong leader will be used)
 vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
+
+-- Disable unused remote providers
+vim.g.loaded_perl_provider = 0
+vim.g.loaded_ruby_provider = 0
+vim.g.loaded_python3_provider = 0
+vim.g.loaded_node_provider = 0
 
 vim.opt.conceallevel = 1
 
@@ -30,14 +33,15 @@ if not vim.uv.fs_stat(lazypath) then
 end
 vim.opt.rtp:prepend(lazypath)
 vim.opt.relativenumber = true
-vim.opt.rnu = true
 
 local local_config = vim.fn.expand '~/.config/nvim/init-local.lua'
 if vim.fn.filereadable(local_config) == 1 then
   vim.cmd('source ' .. local_config)
 end
 
-require('lazy').setup 'plugins'
+require('lazy').setup('plugins', {
+  rocks = { enabled = false },
+})
 
 -- [[ Setting options ]]
 -- See `:help vim.o`
@@ -72,10 +76,7 @@ vim.wo.signcolumn = 'yes'
 -- Decrease update time
 vim.o.updatetime = 250
 vim.o.timeout = true
-vim.o.timeoutlen = 500
-
--- Set completeopt to have a better completion experience
-vim.o.completeopt = 'menuone,noselect'
+vim.o.timeoutlen = 300
 
 -- NOTE: You should make sure your terminal supports this
 vim.o.termguicolors = true
@@ -90,8 +91,6 @@ vim.keymap.set({ 'n', 'v' }, '<Space>', '<Nop>', { silent = true })
 vim.keymap.set('n', 'k', "v:count == 0 ? 'gk' : 'k'", { expr = true, silent = true })
 vim.keymap.set('n', 'j', "v:count == 0 ? 'gj' : 'j'", { expr = true, silent = true })
 
-vim.keymap.set('n', '<leader>b', require('dap').toggle_breakpoint)
-
 -- [[ Highlight on yank ]]
 -- See `:help vim.highlight.on_yank()`
 local highlight_group = vim.api.nvim_create_augroup('YankHighlight', { clear = true })
@@ -105,34 +104,62 @@ vim.api.nvim_create_autocmd('TextYankPost', {
 
 local format_on_save_ts = vim.api.nvim_create_augroup('fmt-ts', {})
 vim.api.nvim_create_autocmd('BufWritePre', {
-  pattern = { '*.tsx', '*.ts', '*.jsx', '*.js' },
-  command = 'silent! EslintFixAll',
+  pattern = { '*.ts', '*.js' },
+  callback = function(args)
+    local clients = vim.lsp.get_clients { bufnr = args.buf, name = 'eslint' }
+    if #clients > 0 then
+      vim.cmd 'silent! EslintFixAll'
+    end
+  end,
   group = format_on_save_ts,
 })
 
--- Diffview setup
-require('diffview').setup {
-  view = {
-    merge_tool = {
-      layout = 'diff1_plain',
-    },
+-- [[ Diagnostic display configuration ]]
+vim.diagnostic.config {
+  virtual_text = {
+    source = true,
+    format = function(diagnostic)
+      if diagnostic.user_data and diagnostic.user_data.code then
+        return string.format('%s %s', diagnostic.user_data.code, diagnostic.message)
+      else
+        return diagnostic.message
+      end
+    end,
+  },
+  signs = true,
+  float = {
+    header = 'Diagnostics',
+    source = true,
+    border = 'rounded',
   },
 }
--- Keymaps for Diffview
-vim.keymap.set('n', '<leader>do', ':DiffviewOpen<cr>', { desc = 'Open Diffview' })
-vim.keymap.set('n', '<leader>dc', ':DiffviewClose<cr>', { desc = 'Close Diffview' })
 
--- Yes, we're just executing a bunch of Vimscript, but this is the officially
--- endorsed method; see https://github.com/L3MON4D3/LuaSnip#keymaps
-vim.cmd [[
-" Use Tab to expand and jump through snippets
-imap <silent><expr> <Tab> luasnip#expand_or_jumpable() ? '<Plug>luasnip-expand-or-jump' : '<Tab>' 
-smap <silent><expr> <Tab> luasnip#jumpable(1) ? '<Plug>luasnip-jump-next' : '<Tab>'
+-- LuaSnip keymaps (deferred until LuaSnip is loaded)
+vim.api.nvim_create_autocmd('User', {
+  pattern = 'LazyLoad',
+  callback = function(args)
+    if args.data ~= 'LuaSnip' then
+      return
+    end
+    local luasnip = require 'luasnip'
+    vim.keymap.set({ 'i', 's' }, '<Tab>', function()
+      if luasnip.expand_or_jumpable() then
+        luasnip.expand_or_jump()
+      else
+        vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('<Tab>', true, false, true), 'n', false)
+      end
+    end, { silent = true })
 
-" Use Shift-Tab to jump backwards through snippets
-imap <silent><expr> <S-Tab> luasnip#jumpable(-1) ? '<Plug>luasnip-jump-prev' : '<S-Tab>'
-smap <silent><expr> <S-Tab> luasnip#jumpable(-1) ? '<Plug>luasnip-jump-prev' : '<S-Tab>'
-]]
+    vim.keymap.set({ 'i', 's' }, '<S-Tab>', function()
+      if luasnip.jumpable(-1) then
+        luasnip.jump(-1)
+      else
+        vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('<S-Tab>', true, false, true), 'n', false)
+      end
+    end, { silent = true })
+    return true -- remove this autocmd after firing
+  end,
+})
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et

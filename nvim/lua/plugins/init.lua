@@ -1,19 +1,14 @@
 return {
-  'zaid/vim-rec',
   'tpope/vim-rhubarb',
-  'evanleck/vim-svelte',
   'aserowy/tmux.nvim',
   'tpope/vim-sleuth',
   'nvim-tree/nvim-web-devicons',
   'Canop/nvim-bacon',
-  'nvim-neotest/nvim-nio',
-  'mattn/webapi-vim',
+
   {
     'kylechui/nvim-surround',
     event = 'VeryLazy',
-    config = function()
-      require('nvim-surround').setup {}
-    end,
+    opts = {},
   },
   {
     'folke/lazydev.nvim',
@@ -31,6 +26,7 @@ return {
       {
         'L3MON4D3/LuaSnip',
         version = '2.*',
+        build = 'make install_jsregexp',
       },
       'folke/lazydev.nvim',
     },
@@ -105,9 +101,7 @@ return {
   },
   {
     'folke/which-key.nvim',
-    config = function()
-      require('which-key').setup {}
-    end,
+    opts = {},
   },
   {
     'folke/todo-comments.nvim',
@@ -131,17 +125,17 @@ return {
     },
     opts = {
       notify_on_error = true,
-      format_on_save = { 'prettierd' },
+      format_on_save = { timeout_ms = 2500 },
       formatters_by_ft = {
         lua = { 'stylua' },
         javascript = { 'prettierd' },
         typescript = { 'prettierd' },
-        typescriptreact = { 'prettierd' },
         css = { 'prettierd' },
         scss = { 'prettierd' },
         html = { 'prettierd' },
         htmlangular = { 'prettierd' },
         json = { 'prettierd' },
+        rust = { 'rustfmt' },
         markdown = { 'prettierd' },
       },
     },

@@ -5,7 +5,6 @@ return {
     dependencies = {
       'nvim-treesitter/nvim-treesitter-textobjects',
       'nvim-treesitter/nvim-treesitter-refactor',
-      'nushell/tree-sitter-nu',
     },
     build = ':TSUpdate',
     config = function()
@@ -14,9 +13,12 @@ return {
           'angular',
           'css',
           'html',
+          'java',
           'json',
           'lua',
+          'rust',
           'scss',
+          'toml',
           'typescript',
           'yaml',
         },
@@ -84,9 +86,7 @@ return {
           },
           highlight_current_scope = { enable = true },
           smart_rename = {
-            enable = true,
-            -- Assign keymaps to false to disable them, e.g. `smart_rename = false`.
-            keymaps = { smart_rename = 'grr' },
+            enable = false,
           },
           navigation = {
             enable = true,

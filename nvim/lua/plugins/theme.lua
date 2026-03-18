@@ -66,7 +66,9 @@ return {
     opts = {
       enabled = false,
     },
-    vim.keymap.set('n', '<leader>gb', ':GitBlameToggle<CR>', { desc = 'Toggle Git blame' }),
+    keys = {
+      { '<leader>gb', ':GitBlameToggle<CR>', desc = 'Toggle Git blame' },
+    },
   },
   {
     'folke/noice.nvim',
@@ -95,6 +97,8 @@ return {
       'MunifTanjim/nui.nvim',
       'rcarriga/nvim-notify',
     },
-    vim.keymap.set('n', '<leader>nd', ':NoiceDismiss<CR>', { desc = 'Dismiss Noice Message' }),
+    keys = {
+      { '<leader>nd', ':NoiceDismiss<CR>', desc = 'Dismiss Noice Message' },
+    },
   },
 }
