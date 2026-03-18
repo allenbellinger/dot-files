@@ -1,4 +1,3 @@
-command = /bin/sh -c "zellij --session safety --layout safety -d && zellij attach main --create --layout app-safety-ui"
 theme = Everforest Dark Hard
 font-size = 16
 window-height = 510

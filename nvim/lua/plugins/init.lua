@@ -50,6 +50,34 @@ return {
         default = { 'lsp', 'path', 'snippets', 'lazydev' },
         providers = {
           lazydev = { name = 'LazyDev', module = 'lazydev.integrations.blink', score_offset = 100 },
+          lsp = {
+            transform_items = function(ctx, items)
+              -- Clamp angularls textEdit ranges to the cursor so completions
+              -- insert text instead of overwriting what comes after the cursor
+              local cursor_col = ctx.cursor[2]
+              for _, item in ipairs(items) do
+                if item.client_id then
+                  local client = vim.lsp.get_client_by_id(item.client_id)
+                  if client and client.name == 'angularls' then
+                    local te = item.textEdit
+                    if te then
+                      local range = te.range or te.replace
+                      if range and range['end'].character > cursor_col then
+                        range['end'].character = cursor_col
+                      end
+                      if te.insert and te.insert['end'].character > cursor_col then
+                        te.insert['end'].character = cursor_col
+                      end
+                      if te.replace and te.replace['end'].character > cursor_col then
+                        te.replace['end'].character = cursor_col
+                      end
+                    end
+                  end
+                end
+              end
+              return items
+            end,
+          },
         },
       },
       snippets = { preset = 'luasnip' },

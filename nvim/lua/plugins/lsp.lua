@@ -33,10 +33,6 @@ return {
       require('mason-tool-installer').setup {}
       vim.api.nvim_command 'MasonToolsInstall'
 
-      local project_library_path = '~/Projects/app_safety_ui/node_modules'
-      vim.lsp.config('angularls', {
-        cmd = { 'ngserver', '--stdio', '--tsProbeLocations', project_library_path, '--ngProbeLocations', project_library_path },
-      })
       vim.lsp.enable 'angularls'
       vim.lsp.enable 'eslint'
       vim.lsp.enable 'ts_ls'

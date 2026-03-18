@@ -1,9 +1,9 @@
 layout {
     pane split_direction="vertical" {
-        pane cwd="~/Projects/app_safety_ui" name="main" size="60%"
+        pane cwd="~/Projects" name="main" size="60%"
         pane split_direction="horizontal" stacked=true size="40%" {
-            pane cwd="~/Projects/app_safety_ui" name="terminal"
-            pane cwd="~/Projects/app_safety_ui" name="terminal"
+            pane cwd="~/Projects" name="terminal"
+            pane cwd="~/Projects" name="terminal"
         }
     }
     pane size=1 borderless=true {

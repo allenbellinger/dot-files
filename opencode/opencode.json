@@ -2,5 +2,12 @@
   "$schema": "https://opencode.ai/config.json",
   "autoupdate": true,
   "share": "disabled",
-  "enabled_providers": ["github-copilot"]
+  "enabled_providers": ["github-copilot"],
+  "mcp": {
+    "azure-devops": {
+      "type": "local",
+      "command": ["npx", "-y", "@azure-devops/mcp", "jbhunt"],
+      "enabled": true
+    }
+  }
 }
