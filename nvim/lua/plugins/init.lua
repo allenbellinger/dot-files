@@ -43,27 +43,37 @@ return {
         default = { 'lsp', 'path', 'lazydev' },
         providers = {
           lazydev = { name = 'LazyDev', module = 'lazydev.integrations.blink', score_offset = 100 },
-          lsp = {
+           lsp = {
             transform_items = function(ctx, items)
               -- Clamp angularls textEdit ranges to the cursor so completions
-              -- insert text instead of overwriting what comes after the cursor
-              local cursor_col = ctx.cursor[2]
+              -- insert text instead of overwriting what comes after the cursor.
+              -- Angular LS returns ranges that can span multiple lines, so we
+              -- must clamp both the end line and end character.
+              local cursor_line = ctx.cursor[1] - 1 -- 0-indexed line (LSP uses 0-indexed)
+              local cursor_col = ctx.cursor[2] -- 0-indexed col (LSP uses 0-indexed)
+
+              local function clamp_range(range)
+                if not range then
+                  return
+                end
+                local end_pos = range['end']
+                if end_pos.line > cursor_line then
+                  end_pos.line = cursor_line
+                  end_pos.character = cursor_col
+                elseif end_pos.line == cursor_line and end_pos.character > cursor_col then
+                  end_pos.character = cursor_col
+                end
+              end
+
               for _, item in ipairs(items) do
                 if item.client_id then
                   local client = vim.lsp.get_client_by_id(item.client_id)
                   if client and client.name == 'angularls' then
                     local te = item.textEdit
                     if te then
-                      local range = te.range or te.replace
-                      if range and range['end'].character > cursor_col then
-                        range['end'].character = cursor_col
-                      end
-                      if te.insert and te.insert['end'].character > cursor_col then
-                        te.insert['end'].character = cursor_col
-                      end
-                      if te.replace and te.replace['end'].character > cursor_col then
-                        te.replace['end'].character = cursor_col
-                      end
+                      clamp_range(te.range)
+                      clamp_range(te.insert)
+                      clamp_range(te.replace)
                     end
                   end
                 end

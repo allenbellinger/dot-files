@@ -13,6 +13,7 @@ return {
         'emmet-language-server',
         'stylelint-lsp',
         'rust-analyzer',
+        'jsonls',
         -- Formatters / linters
         'prettierd',
         'stylua',
@@ -42,6 +43,7 @@ return {
       vim.lsp.enable 'eslint'
       vim.lsp.enable 'ts_ls'
       vim.lsp.enable 'lua_ls'
+      vim.lsp.enable 'jsonls'
       vim.lsp.enable 'emmet_language_server'
       vim.lsp.config('emmet_language_server', {
         filetypes = emmet_filetypes,
@@ -79,5 +81,15 @@ return {
       'nvim-treesitter/nvim-treesitter',
       'nvim-tree/nvim-web-devicons',
     },
+  },
+  {
+    'vuki656/package-info.nvim',
+    dependencies = 'MunifTanjim/nui.nvim',
+    opts = { autostart = false },
+    config = function(_, opts)
+      require('package-info').setup(opts)
+      vim.keymap.set('n', '<leader>ns', function() require('package-info').show({ force = true }) end, { desc = 'Show package versions', silent = true })
+      vim.keymap.set('n', '<leader>nc', function() require('package-info').hide() end, { desc = 'Hide package versions', silent = true })
+    end,
   },
 }
