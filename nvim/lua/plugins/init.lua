@@ -1,6 +1,4 @@
 return {
-  'tpope/vim-rhubarb',
-  'aserowy/tmux.nvim',
   'tpope/vim-sleuth',
   'nvim-tree/nvim-web-devicons',
   'Canop/nvim-bacon',

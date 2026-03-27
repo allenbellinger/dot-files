@@ -46,6 +46,8 @@ BREW_PACKAGES=(
   node        # Required by Mason for LSP servers (angularls, ts_ls, eslint, etc.)
   ripgrep     # Telescope live_grep
   fd          # Telescope file finder
+  bat         # Syntax-highlighted file previews (Telescope, etc.)
+  chafa       # Image previews (telescope-media-files)
   git         # Plugin management, lazy.nvim bootstrap
   ghostty     # Terminal emulator
   zellij      # Terminal multiplexer
@@ -89,6 +91,14 @@ fi
 
 info "Ensuring Rust components (rust-analyzer, rustfmt)..."
 rustup component add rust-analyzer rustfmt 2>/dev/null || true
+
+# --- Bacon (Rust background checker, used by nvim-bacon) ---
+if ! command -v bacon &>/dev/null; then
+  info "Installing bacon..."
+  cargo install --locked bacon
+else
+  ok "bacon: already installed"
+fi
 
 # --- OpenCode ---
 if ! command -v opencode &>/dev/null; then

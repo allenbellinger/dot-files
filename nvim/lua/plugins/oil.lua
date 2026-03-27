@@ -15,6 +15,10 @@ return {
             return name == '.DS_Store'
           end,
         },
+        cleanup_delay_ms = 1000,
+        lsp_file_methods = {
+          autosave_changes = true,
+        },
       }
 
       -- Open parent directory in current window

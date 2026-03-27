@@ -81,6 +81,18 @@ vim.o.timeoutlen = 300
 -- NOTE: You should make sure your terminal supports this
 vim.o.termguicolors = true
 
+-- Auto-reload files changed outside of Neovim
+vim.o.autoread = true
+local auto_reload_group = vim.api.nvim_create_augroup('AutoReload', { clear = true })
+vim.api.nvim_create_autocmd({ 'FocusGained', 'BufEnter', 'CursorHold', 'CursorHoldI' }, {
+  group = auto_reload_group,
+  callback = function()
+    if vim.fn.mode() ~= 'c' then
+      vim.cmd 'checktime'
+    end
+  end,
+})
+
 -- [[ Basic Keymaps ]]
 
 -- Keymaps for better default experience
@@ -100,18 +112,6 @@ vim.api.nvim_create_autocmd('TextYankPost', {
   end,
   group = highlight_group,
   pattern = '*',
-})
-
-local format_on_save_ts = vim.api.nvim_create_augroup('fmt-ts', {})
-vim.api.nvim_create_autocmd('BufWritePre', {
-  pattern = { '*.ts', '*.js' },
-  callback = function(args)
-    local clients = vim.lsp.get_clients { bufnr = args.buf, name = 'eslint' }
-    if #clients > 0 then
-      vim.cmd 'silent! EslintFixAll'
-    end
-  end,
-  group = format_on_save_ts,
 })
 
 -- [[ Diagnostic display configuration ]]

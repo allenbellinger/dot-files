@@ -12,8 +12,8 @@ return {
         'lua-language-server',
         'emmet-language-server',
         'stylelint-lsp',
-        'rust-analyzer',
-        'jsonls',
+        'json-lsp',
+        'yaml-language-server',
         -- Formatters / linters
         'prettierd',
         'stylua',
@@ -39,16 +39,10 @@ return {
       local emmet_filetypes = { 'css', 'html', 'scss', 'typescript' }
       local stylelint_filetypes = { 'css', 'scss', 'typescript' }
 
-      vim.lsp.enable 'angularls'
-      vim.lsp.enable 'eslint'
-      vim.lsp.enable 'ts_ls'
-      vim.lsp.enable 'lua_ls'
-      vim.lsp.enable 'jsonls'
-      vim.lsp.enable 'emmet_language_server'
+      -- Config must come before enable so servers start with the right settings
       vim.lsp.config('emmet_language_server', {
         filetypes = emmet_filetypes,
       })
-      vim.lsp.enable 'stylelint_lsp'
       vim.lsp.config('stylelint_lsp', {
         filetypes = stylelint_filetypes,
         settings = {
@@ -58,6 +52,14 @@ return {
           },
         },
       })
+
+      vim.lsp.enable 'angularls'
+      vim.lsp.enable 'eslint'
+      vim.lsp.enable 'ts_ls'
+      vim.lsp.enable 'lua_ls'
+      vim.lsp.enable 'jsonls'
+      vim.lsp.enable 'emmet_language_server'
+      vim.lsp.enable 'stylelint_lsp'
       vim.lsp.enable 'rust_analyzer'
       vim.lsp.enable 'yamlls'
 

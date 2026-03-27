@@ -35,7 +35,7 @@ return {
             hidden = true,
           },
         },
-        previewers = { vimgrep = { new = 'bat' } },
+
       }
 
       telescope.load_extension 'media_files'
