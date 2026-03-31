@@ -50,6 +50,15 @@ return {
             validate = stylelint_filetypes,
           },
         },
+        handlers = {
+          -- Stylelint LSP sends window/showMessageRequest prompts when it
+          -- can't parse inline styles (e.g. typing '@' in a TS file). The
+          -- default handler routes these through vim.ui.select, which
+          -- triggers telescope-ui-select. Suppress them here.
+          ['window/showMessageRequest'] = function(_, result)
+            return result
+          end,
+        },
       })
 
       vim.lsp.enable 'angularls'
