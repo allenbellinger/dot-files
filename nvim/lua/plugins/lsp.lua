@@ -46,9 +46,8 @@ return {
       vim.lsp.config('stylelint_lsp', {
         filetypes = stylelint_filetypes,
         settings = {
-          stylelintplus = {
-            autoFixOnSave = true,
-            autoFixOnFormat = true,
+          stylelint = {
+            validate = stylelint_filetypes,
           },
         },
       })
@@ -60,6 +59,7 @@ return {
       vim.lsp.enable 'jsonls'
       vim.lsp.enable 'emmet_language_server'
       vim.lsp.enable 'stylelint_lsp'
+
       vim.lsp.enable 'rust_analyzer'
       vim.lsp.enable 'yamlls'
 
@@ -90,8 +90,12 @@ return {
     opts = { autostart = false },
     config = function(_, opts)
       require('package-info').setup(opts)
-      vim.keymap.set('n', '<leader>ns', function() require('package-info').show({ force = true }) end, { desc = 'Show package versions', silent = true })
-      vim.keymap.set('n', '<leader>nc', function() require('package-info').hide() end, { desc = 'Hide package versions', silent = true })
+      vim.keymap.set('n', '<leader>ns', function()
+        require('package-info').show { force = true }
+      end, { desc = 'Show package versions', silent = true })
+      vim.keymap.set('n', '<leader>nc', function()
+        require('package-info').hide()
+      end, { desc = 'Hide package versions', silent = true })
     end,
   },
 }

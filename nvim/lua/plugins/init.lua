@@ -129,7 +129,8 @@ return {
     },
     opts = {
       notify_on_error = true,
-      format_on_save = { timeout_ms = 2500 },
+      -- format_on_save is handled by the BufWritePre autocmd below
+      -- so that stylelint autofix runs before conform formatters
       formatters_by_ft = {
         lua = { 'stylua' },
         javascript = { 'prettierd' },
@@ -143,5 +144,44 @@ return {
         markdown = { 'prettierd' },
       },
     },
+    init = function()
+      -- Auto-fix stylelint issues on save, then run conform formatters.
+      -- Equivalent to VS Code's:
+      --   "editor.codeActionsOnSave": { "source.fixAll.stylelint": "explicit" }
+      vim.api.nvim_create_autocmd('BufWritePre', {
+        desc = 'Stylelint fix-all + conform format on save',
+        pattern = '*',
+        group = vim.api.nvim_create_augroup('ConformStylelintFormat', { clear = true }),
+        callback = function(ev)
+          local conform_opts = { bufnr = ev.buf, timeout_ms = 2500 }
+          local client = vim.lsp.get_clients({ name = 'stylelint_lsp', bufnr = ev.buf })[1]
+
+          if not client then
+            require('conform').format(conform_opts)
+            return
+          end
+
+          -- Request stylelint autofix code action synchronously
+          local params = vim.lsp.util.make_range_params(nil, client.offset_encoding)
+          params.context = {
+            only = { 'source.fixAll.stylelint' },
+            diagnostics = {},
+          }
+
+          local result = client:request_sync('textDocument/codeAction', params, 2000, ev.buf)
+          if result and result.result then
+            for _, action in ipairs(result.result) do
+              if action.edit then
+                vim.lsp.util.apply_workspace_edit(action.edit, client.offset_encoding)
+              elseif action.command then
+                vim.lsp.buf.execute_command(action.command)
+              end
+            end
+          end
+
+          require('conform').format(conform_opts)
+        end,
+      })
+    end,
   },
 }
