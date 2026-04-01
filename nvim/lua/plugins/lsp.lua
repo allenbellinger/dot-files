@@ -79,6 +79,31 @@ return {
       vim.keymap.set('n', '<leader>ws', vim.lsp.buf.workspace_symbol, { desc = 'Workspace symbols' })
       vim.keymap.set('n', '<leader>ds', vim.lsp.buf.document_symbol, { desc = 'Document symbols' })
       vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostics list' })
+
+      -- Highlight references of the symbol under the cursor (replaces treesitter-refactor highlight_definitions)
+      vim.api.nvim_create_autocmd('LspAttach', {
+        callback = function(args)
+          local client = vim.lsp.get_client_by_id(args.data.client_id)
+          if client and client:supports_method 'textDocument/documentHighlight' then
+            local group = vim.api.nvim_create_augroup('lsp-document-highlight-' .. args.buf, { clear = true })
+            vim.api.nvim_create_autocmd({ 'CursorHold', 'CursorHoldI' }, {
+              buffer = args.buf,
+              group = group,
+              callback = vim.lsp.buf.document_highlight,
+            })
+            vim.api.nvim_create_autocmd({ 'CursorMoved', 'CursorMovedI' }, {
+              buffer = args.buf,
+              group = group,
+              callback = vim.lsp.buf.clear_references,
+            })
+          end
+        end,
+      })
+      vim.api.nvim_create_autocmd('LspDetach', {
+        callback = function(args)
+          pcall(vim.api.nvim_del_augroup_by_name, 'lsp-document-highlight-' .. args.buf)
+        end,
+      })
     end,
   },
   {

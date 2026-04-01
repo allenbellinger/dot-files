@@ -4,7 +4,6 @@ return {
     'nvim-treesitter/nvim-treesitter',
     dependencies = {
       'nvim-treesitter/nvim-treesitter-textobjects',
-      'nvim-treesitter/nvim-treesitter-refactor',
     },
     build = ':TSUpdate',
     config = function()
@@ -77,19 +76,6 @@ return {
             enable = true,
             swap_next = { ['<leader>a'] = '@parameter.inner' },
             swap_previous = { ['<leader>A'] = '@parameter.inner' },
-          },
-        },
-        refactor = {
-          highlight_definitions = {
-            enable = true,
-            clear_on_cursor_move = true,
-          },
-          highlight_current_scope = { enable = true },
-          smart_rename = {
-            enable = false,
-          },
-          navigation = {
-            enable = true,
           },
         },
       }
