@@ -6,7 +6,7 @@ return {
     dependencies = {
       'nvim-lua/plenary.nvim',
       'nvim-lua/popup.nvim',
-      'nvim-telescope/telescope-fzf-native.nvim',
+      'natecraddock/telescope-zf-native.nvim',
       'nvim-telescope/telescope-media-files.nvim',
     },
     config = function()
@@ -16,7 +16,7 @@ return {
       telescope.setup {
         defaults = {
           mappings = { i = { ['<C-u>'] = false, ['<C-d>'] = false } },
-          path_display = { 'tail' },
+          path_display = { 'filename_first' },
         },
         extensions = {
           media_files = {
@@ -41,8 +41,8 @@ return {
       telescope.load_extension 'media_files'
       pcall(telescope.load_extension, 'ui-select')
 
-      -- Enable telescope fzf native, if installed
-      pcall(telescope.load_extension, 'fzf')
+      -- Enable telescope zf native for filename-prioritized sorting
+      pcall(telescope.load_extension, 'zf-native')
       -- See `:help telescope.builtin`
       vim.keymap.set('n', '<leader>?', require('telescope.builtin').oldfiles, { desc = '[?] Find recently opened files' })
       vim.keymap.set('n', '<leader><space>', require('telescope.builtin').buffers, { desc = '[ ] Find existing buffers' })
@@ -69,18 +69,6 @@ return {
           cwd = vim.fn.stdpath 'config',
         }
       end, { desc = '[S]earch neo[V]im files' })
-    end,
-  }, -- Fuzzy Finder (files, lsp, etc)
-  -- Fuzzy Finder Algorithm which requires local dependencies to be built.
-  -- Only load if `make` is available. Make sure you have the system
-  -- requirements installed.
-  {
-    'nvim-telescope/telescope-fzf-native.nvim',
-    -- NOTE: If you are having trouble with this installation,
-    --       refer to the README for telescope-fzf-native for more instructions.
-    build = 'make',
-    cond = function()
-      return vim.fn.executable 'make' == 1
     end,
   },
 }

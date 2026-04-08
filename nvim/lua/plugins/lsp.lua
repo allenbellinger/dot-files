@@ -10,7 +10,6 @@ return {
         'eslint-lsp',
         'typescript-language-server',
         'lua-language-server',
-        'emmet-language-server',
         'stylelint-lsp',
         'json-lsp',
         'yaml-language-server',
@@ -36,13 +35,9 @@ return {
       'mason-org/mason-lspconfig.nvim',
     },
     config = function()
-      local emmet_filetypes = { 'css', 'html', 'scss', 'typescript' }
       local stylelint_filetypes = { 'css', 'scss', 'typescript' }
 
       -- Config must come before enable so servers start with the right settings
-      vim.lsp.config('emmet_language_server', {
-        filetypes = emmet_filetypes,
-      })
       vim.lsp.config('stylelint_lsp', {
         filetypes = stylelint_filetypes,
         settings = {
@@ -66,7 +61,6 @@ return {
       vim.lsp.enable 'ts_ls'
       vim.lsp.enable 'lua_ls'
       vim.lsp.enable 'jsonls'
-      vim.lsp.enable 'emmet_language_server'
       vim.lsp.enable 'stylelint_lsp'
 
       vim.lsp.enable 'rust_analyzer'
@@ -115,7 +109,7 @@ return {
     },
     dependencies = {
       'nvim-treesitter/nvim-treesitter',
-      'nvim-tree/nvim-web-devicons',
+      'echasnovski/mini.icons',
     },
   },
   {

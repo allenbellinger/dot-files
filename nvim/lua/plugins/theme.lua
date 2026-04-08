@@ -116,4 +116,11 @@ return {
       { '<leader>nd', ':NoiceDismiss<CR>', desc = 'Dismiss Noice Message' },
     },
   },
+  {
+    'goolord/alpha-nvim',
+    dependencies = { 'echasnovski/mini.icons' },
+    config = function()
+      require('alpha').setup(require('alpha.themes.startify').config)
+    end,
+  },
 }

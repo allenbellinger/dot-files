@@ -8,6 +8,11 @@
       "type": "local",
       "command": ["npx", "-y", "@azure-devops/mcp", "jbhunt"],
       "enabled": true
+    },
+    "angular-cli": {
+      "type": "local",
+      "command": ["npx", "-y", "@angular/cli", "mcp"],
+      "enabled": true
     }
   }
 }
