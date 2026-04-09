@@ -5,7 +5,6 @@ return {
     lazy = false,
     opts = {
       ensure_installed = {
-        -- LSP servers
         'angular-language-server',
         'eslint-lsp',
         'typescript-language-server',
@@ -13,7 +12,6 @@ return {
         'stylelint-lsp',
         'json-lsp',
         'yaml-language-server',
-        -- Formatters / linters
         'prettierd',
         'stylua',
       },
@@ -111,19 +109,5 @@ return {
       'nvim-treesitter/nvim-treesitter',
       'echasnovski/mini.icons',
     },
-  },
-  {
-    'vuki656/package-info.nvim',
-    dependencies = 'MunifTanjim/nui.nvim',
-    opts = { autostart = false },
-    config = function(_, opts)
-      require('package-info').setup(opts)
-      vim.keymap.set('n', '<leader>ns', function()
-        require('package-info').show { force = true }
-      end, { desc = 'Show package versions', silent = true })
-      vim.keymap.set('n', '<leader>nc', function()
-        require('package-info').hide()
-      end, { desc = 'Hide package versions', silent = true })
-    end,
   },
 }

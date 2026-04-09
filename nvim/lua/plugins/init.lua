@@ -48,7 +48,7 @@ return {
         default = { 'lsp', 'path', 'lazydev' },
         providers = {
           lazydev = { name = 'LazyDev', module = 'lazydev.integrations.blink', score_offset = 100 },
-           lsp = {
+          lsp = {
             transform_items = function(ctx, items)
               -- Clamp angularls textEdit ranges to the cursor so completions
               -- insert text instead of overwriting what comes after the cursor.
@@ -124,26 +124,16 @@ return {
     'stevearc/conform.nvim',
     event = { 'BufWritePre' },
     cmd = { 'ConformInfo' },
-    keys = {
-      {
-        '<leader>f',
-        function()
-          require('conform').format { async = true }
-        end,
-        mode = '',
-        desc = '[F]ormat buffer',
-      },
-    },
     opts = {
-      notify_on_error = true,
-      -- format_on_save is handled by the BufWritePre autocmd below
-      -- so that stylelint autofix runs before conform formatters
+      format_on_save = {
+        timeout_ms = 2500,
+      },
       formatters_by_ft = {
         lua = { 'stylua' },
         javascript = { 'prettierd' },
         typescript = { 'prettierd' },
-        css = { 'prettierd' },
-        scss = { 'prettierd' },
+        css = { 'stylelint' },
+        scss = { 'stylelint' },
         html = { 'prettierd' },
         htmlangular = { 'prettierd' },
         json = { 'prettierd' },
@@ -151,41 +141,5 @@ return {
         markdown = { 'prettierd' },
       },
     },
-    init = function()
-      -- Run conform formatters first, then apply stylelint fixes so
-      -- stylelint always gets the last word on save.
-      vim.api.nvim_create_autocmd('BufWritePre', {
-        desc = 'Conform format + stylelint fix-all on save',
-        pattern = '*',
-        group = vim.api.nvim_create_augroup('ConformStylelintFormat', { clear = true }),
-        callback = function(ev)
-          local conform_opts = { bufnr = ev.buf, timeout_ms = 2500 }
-          require('conform').format(conform_opts)
-
-          local client = vim.lsp.get_clients({ name = 'stylelint_lsp', bufnr = ev.buf })[1]
-          if not client then
-            return
-          end
-
-          -- Request stylelint autofix code action synchronously (runs after conform)
-          local params = vim.lsp.util.make_range_params(nil, client.offset_encoding)
-          params.context = {
-            only = { 'source.fixAll.stylelint' },
-            diagnostics = {},
-          }
-
-          local result = client:request_sync('textDocument/codeAction', params, 2000, ev.buf)
-          if result and result.result then
-            for _, action in ipairs(result.result) do
-              if action.edit then
-                vim.lsp.util.apply_workspace_edit(action.edit, client.offset_encoding)
-              elseif action.command then
-                client:exec_cmd(action.command, { bufnr = ev.buf })
-              end
-            end
-          end
-        end,
-      })
-    end,
   },
 }

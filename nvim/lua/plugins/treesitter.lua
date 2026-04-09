@@ -1,6 +1,19 @@
 -- Highlight, edit, and navigate code
 return {
   {
+    'andymass/vim-matchup',
+    event = 'BufReadPost',
+    dependencies = { 'nvim-treesitter/nvim-treesitter' },
+    init = function()
+      vim.g.matchup_matchparen_offscreen = { method = 'popup' }
+    end,
+    config = function()
+      require('nvim-treesitter').setup {
+        matchup = { enable = true },
+      }
+    end,
+  },
+  {
     'nvim-treesitter/nvim-treesitter',
     branch = 'main',
     build = ':TSUpdate',
@@ -13,6 +26,7 @@ return {
         'css',
         'html',
         'java',
+        'javascript',
         'json',
         'lua',
         'rust',
