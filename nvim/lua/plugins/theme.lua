@@ -19,22 +19,35 @@ return {
         theme = 'everforest',
         component_separators = '|',
         section_separators = '',
+        globalstatus = true,
       },
       sections = {
-        lualine_a = { 'mode' },
+        lualine_a = {
+          { 'mode', fmt = function(str) return str:sub(1, 1) end },
+        },
         lualine_b = {
           'branch',
-          'diff',
+          {
+            'diff',
+            source = function()
+              local g = vim.b.gitsigns_status_dict
+              if g then
+                return { added = g.added, modified = g.changed, removed = g.removed }
+              end
+            end,
+          },
           {
             'diagnostics',
             sources = { 'nvim_diagnostic' },
             symbols = { error = ' ', warn = ' ', info = ' ', hint = ' ' },
           },
         },
-        lualine_c = { 'filename' },
-        lualine_x = vim.g.copilotEnabled and { 'copilot', 'encoding', 'fileformat', 'filetype' }
-          or { 'encoding', 'fileformat', 'filetype' },
-        lualine_y = { 'progress' },
+        lualine_c = { 'lsp_status' },
+        lualine_x = {
+          { 'copilot', cond = function() return vim.g.copilotEnabled end },
+          { 'filename', file_status = true, symbols = { modified = ' ●', readonly = ' ' } },
+        },
+        lualine_y = { 'filetype' },
         lualine_z = { 'location' },
       },
       inactive_sections = {
@@ -46,7 +59,7 @@ return {
         lualine_z = {},
       },
       tabline = {},
-      extensions = {},
+      extensions = { 'oil', 'lazy', 'quickfix' },
     },
   },
   { -- Adds git releated signs to the gutter, as well as utilities for managing changes
@@ -115,6 +128,10 @@ return {
     keys = {
       { '<leader>nd', ':NoiceDismiss<CR>', desc = 'Dismiss Noice Message' },
     },
+  },
+  {
+    'monkoose/matchparen.nvim',
+    opts = {},
   },
   {
     'goolord/alpha-nvim',

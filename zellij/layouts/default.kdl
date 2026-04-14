@@ -1,12 +1,10 @@
 layout {
     pane split_direction="vertical" {
-        pane cwd="~/Projects" name="main" size="60%"
-        pane split_direction="horizontal" stacked=true size="40%" {
+        pane cwd="~/Projects" name="main" size="70%"
+        pane split_direction="horizontal" stacked=true size="30%" {
+            pane cwd="~/.config" name="config"
             pane cwd="~/Projects" name="terminal"
             pane cwd="~/Projects" name="terminal"
         }
-    }
-    pane size=1 borderless=true {
-        plugin location="zellij:compact-bar"
     }
 }

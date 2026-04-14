@@ -333,7 +333,7 @@ default_mode "locked"
 //   - true (default, enabled)
 //   - false
 // 
-// pane_frames false
+pane_frames false
  
 // When attaching to an existing session with other users,
 // should the session be mirrored (true)
@@ -518,7 +518,7 @@ show_startup_tips false
  
 // Whether to enable mouse hover effects and pane grouping functionality
 // default is true
-// advanced_mouse_actions false
+advanced_mouse_actions false
  
 // The ip address the web server should listen on when it starts
 // Default: "127.0.0.1"

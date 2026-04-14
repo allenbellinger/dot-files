@@ -41,6 +41,13 @@ end
 
 require('lazy').setup('plugins', {
   rocks = { enabled = false },
+  performance = {
+    rtp = {
+      disabled_plugins = {
+        'matchparen',
+      },
+    },
+  },
 })
 
 -- [[ Setting options ]]

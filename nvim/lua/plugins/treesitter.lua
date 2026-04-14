@@ -1,18 +1,9 @@
 -- Highlight, edit, and navigate code
+--
+-- On the `main` branch, nvim-treesitter is only a parser installer.
+-- Highlighting and indentation are handled via a FileType autocmd below.
+-- (Neovim 0.12 only auto-starts treesitter for lua, markdown, help, and query.)
 return {
-  {
-    'andymass/vim-matchup',
-    event = 'BufReadPost',
-    dependencies = { 'nvim-treesitter/nvim-treesitter' },
-    init = function()
-      vim.g.matchup_matchparen_offscreen = { method = 'popup' }
-    end,
-    config = function()
-      require('nvim-treesitter').setup {
-        matchup = { enable = true },
-      }
-    end,
-  },
   {
     'nvim-treesitter/nvim-treesitter',
     branch = 'main',
@@ -24,6 +15,9 @@ return {
       require('nvim-treesitter').install {
         'angular',
         'css',
+        'git_config',
+        'git_rebase',
+        'gitcommit',
         'html',
         'java',
         'javascript',
@@ -36,12 +30,13 @@ return {
         'yaml',
       }
 
-      -- Enable treesitter highlighting, indentation, and incremental selection
-      -- for all filetypes with a parser installed
+      -- Enable treesitter highlighting and indentation for filetypes with a
+      -- parser. Neovim 0.12 only auto-starts highlighting for a few built-in
+      -- ftplugins (lua, markdown, help, query), so we still need to call
+      -- vim.treesitter.start() for everything else.
       vim.api.nvim_create_autocmd('FileType', {
         callback = function()
-          local ok = pcall(vim.treesitter.start)
-          if ok then
+          if pcall(vim.treesitter.start) then
             vim.bo.indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
           end
         end,

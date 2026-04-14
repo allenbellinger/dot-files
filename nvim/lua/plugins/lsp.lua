@@ -54,6 +54,18 @@ return {
         },
       })
 
+      -- Disable willRename so only ts_ls handles file-move import updates from Oil,
+      -- avoiding a race condition when both servers respond to the same rename.
+      vim.lsp.config('angularls', {
+        capabilities = {
+          workspace = {
+            fileOperations = {
+              willRename = vim.NIL,
+            },
+          },
+        },
+      })
+
       vim.lsp.enable 'angularls'
       vim.lsp.enable 'eslint'
       vim.lsp.enable 'ts_ls'
