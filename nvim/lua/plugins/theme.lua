@@ -23,10 +23,15 @@ return {
       },
       sections = {
         lualine_a = {
-          { 'mode', fmt = function(str) return str:sub(1, 1) end },
+          {
+            'mode',
+            fmt = function(str)
+              return str:sub(1, 1)
+            end,
+          },
         },
-        lualine_b = {
-          'branch',
+        lualine_b = { 'branch' },
+        lualine_c = {
           {
             'diff',
             source = function()
@@ -39,14 +44,9 @@ return {
           {
             'diagnostics',
             sources = { 'nvim_diagnostic' },
-            symbols = { error = ' ', warn = ' ', info = ' ', hint = ' ' },
           },
         },
-        lualine_c = { 'lsp_status' },
-        lualine_x = {
-          { 'copilot', cond = function() return vim.g.copilotEnabled end },
-          { 'filename', file_status = true, symbols = { modified = ' ●', readonly = ' ' } },
-        },
+        lualine_x = { 'filename' },
         lualine_y = { 'filetype' },
         lualine_z = { 'location' },
       },
