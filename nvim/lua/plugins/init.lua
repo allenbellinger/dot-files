@@ -9,7 +9,6 @@ return {
     end,
   },
   'Canop/nvim-bacon',
-
   {
     'kylechui/nvim-surround',
     event = 'VeryLazy',
@@ -17,7 +16,7 @@ return {
   },
   {
     'folke/lazydev.nvim',
-    ft = 'lua', -- only load on lua files
+    ft = 'lua',
     opts = {
       library = {
         { path = '${3rd}/luv/library', words = { 'vim%.uv' } },
@@ -115,10 +114,15 @@ return {
     opts = {},
   },
   {
-    'folke/todo-comments.nvim',
-    event = 'VimEnter',
-    dependencies = { 'nvim-lua/plenary.nvim' },
-    opts = { signs = false },
+    'folke/snacks.nvim',
+    opts = {
+      picker = { enabled = true },
+    },
+  },
+  {
+    'folke/trouble.nvim',
+    opts = {},
+    cmd = 'Trouble',
   },
   {
     'stevearc/conform.nvim',

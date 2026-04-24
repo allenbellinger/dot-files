@@ -93,11 +93,6 @@ return {
           enabled = true,
           silent = true,
         },
-        override = {
-          ['vim.lsp.util.convert_input_to_markdown_lines'] = true,
-          ['vim.lsp.util.stylize_markdown'] = true,
-          ['cmp.entry.get_documentation'] = true,
-        },
       },
       presets = {
         lsp_doc_border = true,
@@ -128,10 +123,6 @@ return {
     keys = {
       { '<leader>nd', ':NoiceDismiss<CR>', desc = 'Dismiss Noice Message' },
     },
-  },
-  {
-    'monkoose/matchparen.nvim',
-    opts = {},
   },
   {
     'goolord/alpha-nvim',

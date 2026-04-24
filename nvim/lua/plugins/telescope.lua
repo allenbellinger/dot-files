@@ -1,5 +1,4 @@
 return {
-  'nvim-telescope/telescope-ui-select.nvim',
   {
     'nvim-telescope/telescope.nvim',
     version = '*',
@@ -13,9 +12,20 @@ return {
       -- [[ Configure Telescope ]]
       -- See `:help telescope` and `:help telescope.setup()`
       local telescope = require 'telescope'
+      local open_with_trouble = require('trouble.sources.telescope').open
+
       telescope.setup {
         defaults = {
-          mappings = { i = { ['<C-u>'] = false, ['<C-d>'] = false } },
+          mappings = {
+            i = {
+              ['<C-u>'] = false,
+              ['<C-d>'] = false,
+              ['<C-t>'] = open_with_trouble,
+            },
+            n = {
+              ['<C-t>'] = open_with_trouble,
+            },
+          },
           path_display = { 'filename_first' },
         },
         extensions = {
@@ -39,7 +49,6 @@ return {
       }
 
       telescope.load_extension 'media_files'
-      pcall(telescope.load_extension, 'ui-select')
 
       -- Enable telescope zf native for filename-prioritized sorting
       pcall(telescope.load_extension, 'zf-native')

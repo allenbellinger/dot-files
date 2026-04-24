@@ -44,7 +44,6 @@ require('lazy').setup('plugins', {
   performance = {
     rtp = {
       disabled_plugins = {
-        'matchparen',
       },
     },
   },

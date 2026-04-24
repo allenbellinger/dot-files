@@ -26,6 +26,19 @@ return {
     },
   },
   {
+    'rachartier/tiny-code-action.nvim',
+    event = 'LspAttach',
+    opts = {
+      backend = 'diffsofancy',
+      picker = {
+        'snacks',
+        opts = {
+          focus = 'list',
+        },
+      },
+    },
+  },
+  {
     'neovim/nvim-lspconfig',
     lazy = false,
     dependencies = {
@@ -38,6 +51,9 @@ return {
       -- Config must come before enable so servers start with the right settings
       vim.lsp.config('stylelint_lsp', {
         filetypes = stylelint_filetypes,
+        on_attach = function(client)
+          client.server_capabilities.documentHighlightProvider = false
+        end,
         settings = {
           stylelint = {
             validate = stylelint_filetypes,
@@ -64,6 +80,9 @@ return {
             },
           },
         },
+        on_attach = function(client)
+          client.server_capabilities.semanticTokensProvider = nil
+        end,
       })
 
       vim.lsp.enable 'angularls'
@@ -76,50 +95,19 @@ return {
       vim.lsp.enable 'rust_analyzer'
       vim.lsp.enable 'yamlls'
 
-      vim.keymap.set('n', '<leader>gd', vim.lsp.buf.definition, { desc = 'Go to definition' })
-      vim.keymap.set('n', '<leader>gr', vim.lsp.buf.references, { desc = 'Go to references' })
-      vim.keymap.set('n', '<leader>gi', vim.lsp.buf.implementation, { desc = 'Go to implementation' })
-      vim.keymap.set('n', '<leader>gt', vim.lsp.buf.type_definition, { desc = 'Go to type definition' })
-      vim.keymap.set('n', '<leader>ws', vim.lsp.buf.workspace_symbol, { desc = 'Workspace symbols' })
-      vim.keymap.set('n', '<leader>ds', vim.lsp.buf.document_symbol, { desc = 'Document symbols' })
-      vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostics list' })
+      vim.keymap.set('n', '<leader>gd', '<cmd>Trouble lsp_definitions toggle focus=true<cr>', { desc = 'Go to definition' })
+      vim.keymap.set('n', '<leader>gr', '<cmd>Trouble lsp_references toggle focus=true<cr>', { desc = 'Go to references' })
+      vim.keymap.set('n', '<leader>gi', '<cmd>Trouble lsp_implementations toggle focus=true<cr>', { desc = 'Go to implementation' })
+      vim.keymap.set('n', '<leader>gt', '<cmd>Trouble lsp_type_definitions toggle focus=true<cr>', { desc = 'Go to type definition' })
+      vim.keymap.set('n', '<leader>rn', vim.lsp.buf.rename, { desc = 'Rename' })
 
-      -- Highlight references of the symbol under the cursor (replaces treesitter-refactor highlight_definitions)
-      vim.api.nvim_create_autocmd('LspAttach', {
-        callback = function(args)
-          local client = vim.lsp.get_client_by_id(args.data.client_id)
-          if client and client:supports_method 'textDocument/documentHighlight' then
-            local group = vim.api.nvim_create_augroup('lsp-document-highlight-' .. args.buf, { clear = true })
-            vim.api.nvim_create_autocmd({ 'CursorHold', 'CursorHoldI' }, {
-              buffer = args.buf,
-              group = group,
-              callback = vim.lsp.buf.document_highlight,
-            })
-            vim.api.nvim_create_autocmd({ 'CursorMoved', 'CursorMovedI' }, {
-              buffer = args.buf,
-              group = group,
-              callback = vim.lsp.buf.clear_references,
-            })
-          end
-        end,
-      })
-      vim.api.nvim_create_autocmd('LspDetach', {
-        callback = function(args)
-          pcall(vim.api.nvim_del_augroup_by_name, 'lsp-document-highlight-' .. args.buf)
-        end,
-      })
+      vim.keymap.set({ 'n', 'x' }, '<leader>ca', function()
+        require('tiny-code-action').code_action {}
+      end, { desc = 'Code action' })
+
+      vim.keymap.set('n', '<leader>ws', vim.lsp.buf.workspace_symbol, { desc = 'Workspace symbols' })
+      vim.keymap.set('n', '<leader>ds', '<cmd>Trouble symbols toggle focus=true<cr>', { desc = 'Document symbols' })
+      vim.keymap.set('n', '<leader>q', '<cmd>Trouble diagnostics toggle focus=true<cr>', { desc = 'Open diagnostics list' })
     end,
-  },
-  {
-    'nvimdev/lspsaga.nvim',
-    opts = {},
-    keys = {
-      { '<leader>rn', ':Lspsaga rename<cr>', desc = 'Rename' },
-      { '<leader>ca', ':Lspsaga code_action<cr>', desc = 'Code action' },
-    },
-    dependencies = {
-      'nvim-treesitter/nvim-treesitter',
-      'echasnovski/mini.icons',
-    },
   },
 }
