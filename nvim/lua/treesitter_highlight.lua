@@ -74,12 +74,40 @@ local function setup_lsp_reference_highlight()
       end
 
       local group = vim.api.nvim_create_augroup('LspDocumentHighlight' .. bufnr, { clear = true })
+      local last_symbol_key = nil
+
+      local function clear_refs()
+        last_symbol_key = nil
+        vim.lsp.buf.clear_references()
+      end
+
+      local function current_symbol_key()
+        local node = named_node_at_cursor()
+        if not node or not is_identifier_like(node) then
+          return nil
+        end
+
+        local sr, sc, er, ec = node:range()
+        local tick = vim.api.nvim_buf_get_changedtick(bufnr)
+        return table.concat({ bufnr, tick, sr, sc, er, ec }, ':')
+      end
 
       local function refresh_refs()
-        vim.lsp.buf.clear_references()
-        if not should_highlight_refs() then
+        local key = current_symbol_key()
+
+        if not key then
+          if last_symbol_key ~= nil then
+            clear_refs()
+          end
           return
         end
+
+        if key == last_symbol_key then
+          return
+        end
+
+        last_symbol_key = key
+        vim.lsp.buf.clear_references()
         vim.lsp.buf.document_highlight()
       end
 
@@ -92,14 +120,14 @@ local function setup_lsp_reference_highlight()
       vim.api.nvim_create_autocmd({ 'InsertEnter', 'BufLeave' }, {
         group = group,
         buffer = bufnr,
-        callback = vim.lsp.buf.clear_references,
+        callback = clear_refs,
       })
 
       vim.api.nvim_create_autocmd('LspDetach', {
         group = group,
         buffer = bufnr,
         callback = function()
-          vim.lsp.buf.clear_references()
+          clear_refs()
           pcall(vim.api.nvim_del_augroup_by_id, group)
         end,
       })

@@ -89,6 +89,9 @@ return {
     event = 'VeryLazy',
     opts = {
       lsp = {
+        signature = {
+          enabled = false,
+        },
         hover = {
           enabled = true,
           silent = true,
