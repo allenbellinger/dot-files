@@ -72,6 +72,76 @@ vim.o.breakindent = true
 -- Save undo history
 vim.o.undofile = true
 
+-- Disable swap files and always continue when stale swaps exist
+vim.o.swapfile = false
+vim.api.nvim_create_autocmd('SwapExists', {
+  callback = function()
+    vim.v.swapchoice = 'e'
+  end,
+})
+
+local function delete_old_swap_files(days, notify_result)
+  local cutoff = os.time() - (days * 24 * 60 * 60)
+
+  local dirs = {
+    vim.fn.stdpath('state') .. '/swap',
+    '/tmp',
+    '/var/tmp',
+  }
+
+  for _, entry in ipairs(vim.split(vim.o.directory, ',', { trimempty = true })) do
+    local dir = vim.fn.expand(entry)
+    if dir ~= '.' then
+      table.insert(dirs, dir)
+    end
+  end
+
+  local seen = {}
+  local deleted = 0
+
+  for _, dir in ipairs(dirs) do
+    if vim.fn.isdirectory(dir) == 1 then
+      local patterns = {
+        dir .. '/.*.sw?',
+        dir .. '/*.sw?',
+      }
+
+      for _, pattern in ipairs(patterns) do
+        for _, path in ipairs(vim.fn.glob(pattern, false, true)) do
+          if not seen[path] then
+            seen[path] = true
+            local stat = vim.uv.fs_stat(path)
+            if stat and stat.type == 'file' and stat.mtime and stat.mtime.sec <= cutoff then
+              local ok = vim.uv.fs_unlink(path)
+              if ok then
+                deleted = deleted + 1
+              end
+            end
+          end
+        end
+      end
+    end
+  end
+
+  if notify_result or deleted > 0 then
+    vim.notify(string.format('Deleted %d swap file(s) older than %d day(s)', deleted, days), vim.log.levels.INFO)
+  end
+end
+
+vim.api.nvim_create_user_command('DeleteOldSwapFiles', function(opts)
+  local days = tonumber(opts.args) or 1
+  delete_old_swap_files(days, true)
+end, {
+  nargs = '?',
+  desc = 'Delete stale swap files older than N days (default: 1)',
+})
+
+vim.api.nvim_create_autocmd('VimEnter', {
+  callback = function()
+    delete_old_swap_files(3, false)
+  end,
+})
+
 -- Case insensitive searching UNLESS /C or capital in search
 vim.o.ignorecase = true
 vim.o.smartcase = true
