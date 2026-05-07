@@ -99,6 +99,7 @@ return {
       },
       presets = {
         lsp_doc_border = true,
+        inc_rename = true,
       },
       routes = {
         {

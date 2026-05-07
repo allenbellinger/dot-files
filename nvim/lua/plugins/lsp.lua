@@ -39,6 +39,10 @@ return {
     },
   },
   {
+    'smjonas/inc-rename.nvim',
+    opts = {},
+  },
+  {
     'neovim/nvim-lspconfig',
     lazy = false,
     dependencies = {
@@ -56,7 +60,8 @@ return {
       local function is_within(path, root)
         local normalized_path = fs.normalize(path)
         local normalized_root = fs.normalize(root)
-        return normalized_path == normalized_root or normalized_path:sub(1, #normalized_root + 1) == normalized_root .. '/'
+        return normalized_path == normalized_root
+          or normalized_path:sub(1, #normalized_root + 1) == normalized_root .. '/'
       end
 
       local function angular_root_dir(fname)
@@ -123,7 +128,11 @@ return {
         missing_angularls_paths[key] = true
         vim.schedule(function()
           vim.notify(
-            string.format('angularls strict mode: missing project-local dependency in %s: %s', root_dir, table.concat(missing, ', ')),
+            string.format(
+              'angularls strict mode: missing project-local dependency in %s: %s',
+              root_dir,
+              table.concat(missing, ', ')
+            ),
             vim.log.levels.ERROR
           )
         end)
@@ -228,6 +237,12 @@ return {
         filetypes = { 'typescript', 'html', 'typescriptreact', 'htmlangular' },
         on_attach = function(client)
           client.server_capabilities.semanticTokensProvider = nil
+          client.server_capabilities.renameProvider = false
+
+          local workspace = client.server_capabilities.workspace
+          if workspace and workspace.fileOperations then
+            workspace.fileOperations.willRename = false
+          end
         end,
       })
 
@@ -271,11 +286,33 @@ return {
       vim.lsp.enable 'rust_analyzer'
       vim.lsp.enable 'yamlls'
 
-      vim.keymap.set('n', '<leader>gd', '<cmd>Trouble lsp_definitions toggle focus=true<cr>', { desc = 'Go to definition' })
-      vim.keymap.set('n', '<leader>gr', '<cmd>Trouble lsp_references toggle focus=true<cr>', { desc = 'Go to references' })
-      vim.keymap.set('n', '<leader>gi', '<cmd>Trouble lsp_implementations toggle focus=true<cr>', { desc = 'Go to implementation' })
-      vim.keymap.set('n', '<leader>gt', '<cmd>Trouble lsp_type_definitions toggle focus=true<cr>', { desc = 'Go to type definition' })
-      vim.keymap.set('n', '<leader>rn', vim.lsp.buf.rename, { desc = 'Rename' })
+      vim.keymap.set(
+        'n',
+        '<leader>gd',
+        '<cmd>Trouble lsp_definitions toggle focus=true<cr>',
+        { desc = 'Go to definition' }
+      )
+      vim.keymap.set(
+        'n',
+        '<leader>gr',
+        '<cmd>Trouble lsp_references toggle focus=true<cr>',
+        { desc = 'Go to references' }
+      )
+      vim.keymap.set(
+        'n',
+        '<leader>gi',
+        '<cmd>Trouble lsp_implementations toggle focus=true<cr>',
+        { desc = 'Go to implementation' }
+      )
+      vim.keymap.set(
+        'n',
+        '<leader>gt',
+        '<cmd>Trouble lsp_type_definitions toggle focus=true<cr>',
+        { desc = 'Go to type definition' }
+      )
+      vim.keymap.set('n', '<leader>rn', function()
+        return ':IncRename '
+      end, { expr = true, desc = 'Rename' })
 
       vim.keymap.set({ 'n', 'x' }, '<leader>ca', function()
         require('tiny-code-action').code_action {}
@@ -283,7 +320,12 @@ return {
 
       vim.keymap.set('n', '<leader>ws', vim.lsp.buf.workspace_symbol, { desc = 'Workspace symbols' })
       vim.keymap.set('n', '<leader>ds', '<cmd>Trouble symbols toggle focus=true<cr>', { desc = 'Document symbols' })
-      vim.keymap.set('n', '<leader>q', '<cmd>Trouble diagnostics toggle focus=true<cr>', { desc = 'Open diagnostics list' })
+      vim.keymap.set(
+        'n',
+        '<leader>q',
+        '<cmd>Trouble diagnostics toggle focus=true<cr>',
+        { desc = 'Open diagnostics list' }
+      )
     end,
   },
 }

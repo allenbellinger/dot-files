@@ -141,6 +141,7 @@ return {
         html = { 'prettierd' },
         htmlangular = { 'prettierd' },
         json = { 'prettierd' },
+        jsonc = { 'prettierd' },
         rust = { 'rustfmt' },
         markdown = { 'prettierd' },
       },
