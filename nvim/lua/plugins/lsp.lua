@@ -26,21 +26,20 @@ return {
     },
   },
   {
-    'rachartier/tiny-code-action.nvim',
+    'nvimdev/lspsaga.nvim',
     event = 'LspAttach',
     opts = {
-      backend = 'diffsofancy',
-      picker = {
-        'snacks',
-        opts = {
-          focus = 'list',
-        },
-      },
+      lightbulb = { enable = false },
+      symbol_in_winbar = { enable = false },
     },
-  },
-  {
-    'smjonas/inc-rename.nvim',
-    opts = {},
+    config = function(_, opts)
+      require('lspsaga').setup(opts)
+      -- Hide rename reference highlights (they can stick after closing)
+      vim.api.nvim_set_hl(0, 'RenameMatch', {})
+    end,
+    dependencies = {
+      'nvim-treesitter/nvim-treesitter',
+    },
   },
   {
     'neovim/nvim-lspconfig',
@@ -237,7 +236,6 @@ return {
         filetypes = { 'typescript', 'html', 'typescriptreact', 'htmlangular' },
         on_attach = function(client)
           client.server_capabilities.semanticTokensProvider = nil
-          client.server_capabilities.renameProvider = false
 
           local workspace = client.server_capabilities.workspace
           if workspace and workspace.fileOperations then
@@ -289,41 +287,76 @@ return {
       vim.keymap.set(
         'n',
         '<leader>gd',
-        '<cmd>Trouble lsp_definitions toggle focus=true<cr>',
+        vim.lsp.buf.definition,
         { desc = 'Go to definition' }
       )
       vim.keymap.set(
         'n',
+        '<leader>pd',
+        '<cmd>Lspsaga peek_definition<cr>',
+        { desc = 'Peek definition' }
+      )
+      vim.keymap.set(
+        'n',
         '<leader>gr',
-        '<cmd>Trouble lsp_references toggle focus=true<cr>',
+        vim.lsp.buf.references,
         { desc = 'Go to references' }
       )
       vim.keymap.set(
         'n',
         '<leader>gi',
-        '<cmd>Trouble lsp_implementations toggle focus=true<cr>',
+        vim.lsp.buf.implementation,
         { desc = 'Go to implementation' }
       )
       vim.keymap.set(
         'n',
         '<leader>gt',
-        '<cmd>Trouble lsp_type_definitions toggle focus=true<cr>',
+        vim.lsp.buf.type_definition,
         { desc = 'Go to type definition' }
       )
       vim.keymap.set('n', '<leader>rn', function()
-        return ':IncRename '
-      end, { expr = true, desc = 'Rename' })
+        local bufnr = vim.api.nvim_get_current_buf()
+        local angular_clients = vim.lsp.get_clients { bufnr = bufnr, name = 'angularls' }
+        local has_angular = #angular_clients > 0
+          and angular_clients[1].server_capabilities.renameProvider
 
-      vim.keymap.set({ 'n', 'x' }, '<leader>ca', function()
-        require('tiny-code-action').code_action {}
-      end, { desc = 'Code action' })
+        -- Wrap vim.lsp.buf.rename so Lspsaga's do_rename uses only one client
+        local orig_rename = vim.lsp.buf.rename
+        vim.lsp.buf.rename = function(new_name, opts)
+          vim.lsp.buf.rename = orig_rename
+          opts = opts or {}
+          if has_angular then
+            local client = angular_clients[1]
+            local params = vim.lsp.util.make_position_params(0, client.offset_encoding)
+            client:request('textDocument/prepareRename', params, function(err, result)
+              if err or not result then
+                orig_rename(new_name, vim.tbl_extend('force', opts, {
+                  filter = function(c) return c.name == 'ts_ls' end,
+                }))
+              else
+                orig_rename(new_name, vim.tbl_extend('force', opts, {
+                  filter = function(c) return c.name == 'angularls' end,
+                }))
+              end
+            end, bufnr)
+          else
+            orig_rename(new_name, vim.tbl_extend('force', opts, {
+              filter = function(c) return c.name == 'ts_ls' end,
+            }))
+          end
+        end
 
+        vim.cmd('Lspsaga rename')
+      end, { desc = 'Rename (angularls preferred)' })
+
+      vim.keymap.set({ 'n', 'x' }, '<leader>ca', '<cmd>Lspsaga code_action<cr>', { desc = 'Code action' })
+
+      vim.keymap.set('n', 'K', '<cmd>Lspsaga hover_doc<cr>', { desc = 'Hover doc' })
       vim.keymap.set('n', '<leader>ws', vim.lsp.buf.workspace_symbol, { desc = 'Workspace symbols' })
-      vim.keymap.set('n', '<leader>ds', '<cmd>Trouble symbols toggle focus=true<cr>', { desc = 'Document symbols' })
       vim.keymap.set(
         'n',
         '<leader>q',
-        '<cmd>Trouble diagnostics toggle focus=true<cr>',
+        '<cmd>Trouble diagnostics toggle focus=true filter.buf=0<cr>',
         { desc = 'Open diagnostics list' }
       )
     end,

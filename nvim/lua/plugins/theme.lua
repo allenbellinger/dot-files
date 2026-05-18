@@ -87,45 +87,19 @@ return {
   {
     'folke/noice.nvim',
     event = 'VeryLazy',
+    dependencies = { 'MunifTanjim/nui.nvim' },
     opts = {
+      notify = { enabled = true },
       lsp = {
-        signature = {
-          enabled = false,
-        },
-        hover = {
-          enabled = true,
-          silent = true,
-        },
-      },
-      presets = {
-        lsp_doc_border = true,
-        inc_rename = true,
+        signature = { enabled = false },
+        hover = { enabled = false },
       },
       routes = {
         {
-          filter = {
-            event = 'notify',
-            kind = '',
-            find = 'No information available',
-          },
-          opts = { skip = true },
-        },
-        {
-          filter = {
-            event = 'msg_show',
-            kind = '',
-            find = 'written',
-          },
+          filter = { event = 'msg_show', kind = '', find = 'written' },
           opts = { skip = true },
         },
       },
-    },
-    dependencies = {
-      'MunifTanjim/nui.nvim',
-      'rcarriga/nvim-notify',
-    },
-    keys = {
-      { '<leader>nd', ':NoiceDismiss<CR>', desc = 'Dismiss Noice Message' },
     },
   },
   {

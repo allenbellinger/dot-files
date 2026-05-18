@@ -114,14 +114,14 @@ return {
     opts = {},
   },
   {
-    'folke/snacks.nvim',
-    opts = {
-      picker = { enabled = true },
-    },
-  },
-  {
     'folke/trouble.nvim',
-    opts = {},
+    opts = {
+      win = {
+        wo = {
+          wrap = true,
+        },
+      },
+    },
     cmd = 'Trouble',
   },
   {

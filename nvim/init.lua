@@ -52,6 +52,9 @@ require('lazy').setup('plugins', {
 -- [[ Setting options ]]
 -- See `:help vim.o`
 
+-- Suppress common messages that noice used to filter
+vim.opt.shortmess:append('WcCS')
+
 -- Set highlight on search
 vim.o.hlsearch = false
 
