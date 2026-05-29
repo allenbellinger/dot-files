@@ -6,13 +6,23 @@
   "mcp": {
     "azure-devops": {
       "type": "local",
-      "command": ["npx", "-y", "@azure-devops/mcp", "jbhunt"],
+      "command": ["npx", "-y", "azure-devops-mcp"],
       "enabled": true
+    },
+    "chrome-devtools": {
+      "type": "local",
+      "command": [
+        "npx",
+        "-y",
+        "chrome-devtools-mcp@latest",
+        "--no-usage-statistics"
+      ],
+      "enabled": false
     },
     "angular-cli": {
       "type": "local",
       "command": ["npx", "-y", "@angular/cli", "mcp"],
-      "enabled": true
+      "enabled": false
     }
   }
 }

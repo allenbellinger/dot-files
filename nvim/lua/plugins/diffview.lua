@@ -1,5 +1,5 @@
 return {
-  'sindrets/diffview.nvim',
+  'dlyongemallo/diffview.nvim',
   cmd = { 'DiffviewOpen', 'DiffviewClose' },
   keys = {
     { '<leader>do', ':DiffviewOpen<cr>', desc = 'Open Diffview' },

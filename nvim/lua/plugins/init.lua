@@ -104,11 +104,7 @@ return {
       vim.lsp.enable 'jdtls'
     end,
   },
-  {
-    'numToStr/Comment.nvim',
-    opts = {},
-    lazy = false,
-  },
+
   {
     'folke/which-key.nvim',
     opts = {},
