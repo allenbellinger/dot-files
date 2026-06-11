@@ -18,6 +18,7 @@ return {
         'lua',
         'markdown',
         'markdown_inline',
+        'python',
         'rust',
         'scss',
         'toml',

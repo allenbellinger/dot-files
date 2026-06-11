@@ -6,8 +6,8 @@
   "mcp": {
     "azure-devops": {
       "type": "local",
-      "command": ["npx", "-y", "azure-devops-mcp"],
-      "enabled": true
+      "command": ["npx", "-y", "azure-devops-mcp", "jbhunt"],
+      "enabled": false
     },
     "chrome-devtools": {
       "type": "local",

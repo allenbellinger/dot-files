@@ -14,6 +14,7 @@ return {
         'yaml-language-server',
         'prettierd',
         'stylua',
+        'basedpyright',
       },
     },
   },
@@ -280,45 +281,19 @@ return {
       vim.lsp.enable 'lua_ls'
       vim.lsp.enable 'jsonls'
       vim.lsp.enable 'stylelint_lsp'
-
       vim.lsp.enable 'rust_analyzer'
       vim.lsp.enable 'yamlls'
+      vim.lsp.enable 'basedpyright'
 
-      vim.keymap.set(
-        'n',
-        '<leader>gd',
-        vim.lsp.buf.definition,
-        { desc = 'Go to definition' }
-      )
-      vim.keymap.set(
-        'n',
-        '<leader>pd',
-        '<cmd>Lspsaga peek_definition<cr>',
-        { desc = 'Peek definition' }
-      )
-      vim.keymap.set(
-        'n',
-        '<leader>gr',
-        vim.lsp.buf.references,
-        { desc = 'Go to references' }
-      )
-      vim.keymap.set(
-        'n',
-        '<leader>gi',
-        vim.lsp.buf.implementation,
-        { desc = 'Go to implementation' }
-      )
-      vim.keymap.set(
-        'n',
-        '<leader>gt',
-        vim.lsp.buf.type_definition,
-        { desc = 'Go to type definition' }
-      )
+      vim.keymap.set('n', '<leader>gd', vim.lsp.buf.definition, { desc = 'Go to definition' })
+      vim.keymap.set('n', '<leader>pd', '<cmd>Lspsaga peek_definition<cr>', { desc = 'Peek definition' })
+      vim.keymap.set('n', '<leader>gr', vim.lsp.buf.references, { desc = 'Go to references' })
+      vim.keymap.set('n', '<leader>gi', vim.lsp.buf.implementation, { desc = 'Go to implementation' })
+      vim.keymap.set('n', '<leader>gt', vim.lsp.buf.type_definition, { desc = 'Go to type definition' })
       vim.keymap.set('n', '<leader>rn', function()
         local bufnr = vim.api.nvim_get_current_buf()
         local angular_clients = vim.lsp.get_clients { bufnr = bufnr, name = 'angularls' }
-        local has_angular = #angular_clients > 0
-          and angular_clients[1].server_capabilities.renameProvider
+        local has_angular = #angular_clients > 0 and angular_clients[1].server_capabilities.renameProvider
 
         -- Wrap vim.lsp.buf.rename so Lspsaga's do_rename uses only one client
         local orig_rename = vim.lsp.buf.rename
@@ -330,23 +305,38 @@ return {
             local params = vim.lsp.util.make_position_params(0, client.offset_encoding)
             client:request('textDocument/prepareRename', params, function(err, result)
               if err or not result then
-                orig_rename(new_name, vim.tbl_extend('force', opts, {
-                  filter = function(c) return c.name == 'ts_ls' end,
-                }))
+                orig_rename(
+                  new_name,
+                  vim.tbl_extend('force', opts, {
+                    filter = function(c)
+                      return c.name == 'ts_ls'
+                    end,
+                  })
+                )
               else
-                orig_rename(new_name, vim.tbl_extend('force', opts, {
-                  filter = function(c) return c.name == 'angularls' end,
-                }))
+                orig_rename(
+                  new_name,
+                  vim.tbl_extend('force', opts, {
+                    filter = function(c)
+                      return c.name == 'angularls'
+                    end,
+                  })
+                )
               end
             end, bufnr)
           else
-            orig_rename(new_name, vim.tbl_extend('force', opts, {
-              filter = function(c) return c.name == 'ts_ls' end,
-            }))
+            orig_rename(
+              new_name,
+              vim.tbl_extend('force', opts, {
+                filter = function(c)
+                  return c.name == 'ts_ls'
+                end,
+              })
+            )
           end
         end
 
-        vim.cmd('Lspsaga rename')
+        vim.cmd 'Lspsaga rename'
       end, { desc = 'Rename (angularls preferred)' })
 
       vim.keymap.set({ 'n', 'x' }, '<leader>ca', '<cmd>Lspsaga code_action<cr>', { desc = 'Code action' })
