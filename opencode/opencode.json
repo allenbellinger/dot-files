@@ -6,7 +6,7 @@
   "mcp": {
     "azure-devops": {
       "type": "local",
-      "command": ["npx", "-y", "azure-devops-mcp", "jbhunt"],
+      "command": ["npx", "-y", "@azure-devops/mcp", "jbhunt"],
       "enabled": false
     },
     "chrome-devtools": {
@@ -22,6 +22,11 @@
     "angular-cli": {
       "type": "local",
       "command": ["npx", "-y", "@angular/cli", "mcp"],
+      "enabled": false
+    },
+    "slo-analyzer": {
+      "type": "remote",
+      "url": "http://127.0.0.1:8080/mcp",
       "enabled": false
     }
   }

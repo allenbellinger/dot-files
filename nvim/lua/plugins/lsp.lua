@@ -15,6 +15,7 @@ return {
         'prettierd',
         'stylua',
         'basedpyright',
+        'ruff',
       },
     },
   },
@@ -84,79 +85,25 @@ return {
         return workspace_root
       end
 
-      local function find_workspace_root(path)
-        return fs.root(path, { 'angular.json', 'nx.json' })
-      end
-
-      local function resolve_workspace_node_modules(start_path)
-        local workspace_root = find_workspace_root(start_path)
-        if not workspace_root then
-          return nil
-        end
-
-        local current = fs.normalize(start_path)
-        local normalized_workspace_root = fs.normalize(workspace_root)
-
-        while current and is_within(current, normalized_workspace_root) do
-          local candidate = fs.joinpath(current, 'node_modules')
-          if path_exists(candidate) then
-            return candidate
-          end
-
-          if current == normalized_workspace_root then
-            break
-          end
-
-          local parent = fs.dirname(current)
-          if parent == current then
-            break
-          end
-          current = parent
-        end
-
-        return nil
-      end
-
-      local missing_angularls_paths = {}
-
-      local function notify_missing_paths_once(root_dir, missing)
-        local key = root_dir .. '::' .. table.concat(missing, ',')
-        if missing_angularls_paths[key] then
-          return
-        end
-
-        missing_angularls_paths[key] = true
-        vim.schedule(function()
-          vim.notify(
-            string.format(
-              'angularls strict mode: missing project-local dependency in %s: %s',
-              root_dir,
-              table.concat(missing, ', ')
-            ),
-            vim.log.levels.ERROR
-          )
-        end)
-      end
+      local angularls_warned = {}
 
       local function angularls_cmd(root_dir)
         local ngserver_bin = vim.fn.exepath 'ngserver'
-        local node_modules = resolve_workspace_node_modules(root_dir)
-        local angular_language_service = nil
-        local typescript_lib = nil
+        local workspace_root = fs.root(root_dir, { 'angular.json', 'nx.json' })
+        local node_modules = workspace_root and fs.joinpath(workspace_root, 'node_modules') or nil
 
-        if node_modules then
-          angular_language_service = fs.joinpath(node_modules, '@angular', 'language-service')
-          typescript_lib = fs.joinpath(node_modules, 'typescript', 'lib')
+        if node_modules and not path_exists(node_modules) then
+          node_modules = nil
         end
+
+        local angular_language_service = node_modules and fs.joinpath(node_modules, '@angular', 'language-service')
+        local typescript_lib = node_modules and fs.joinpath(node_modules, 'typescript', 'lib')
 
         local missing = {}
         if ngserver_bin == '' then
-          table.insert(missing, 'ngserver (from PATH / mason)')
+          table.insert(missing, 'ngserver')
         end
         if not node_modules then
-          table.insert(missing, 'node_modules (searched from project root up to workspace root)')
-        end
-        if node_modules and not path_exists(node_modules) then
           table.insert(missing, 'node_modules')
         end
         if not path_exists(angular_language_service) then
@@ -167,7 +114,15 @@ return {
         end
 
         if #missing > 0 then
-          notify_missing_paths_once(root_dir, missing)
+          if not angularls_warned[root_dir] then
+            angularls_warned[root_dir] = true
+            vim.schedule(function()
+              vim.notify(
+                string.format('angularls: missing in %s: %s', root_dir, table.concat(missing, ', ')),
+                vim.log.levels.ERROR
+              )
+            end)
+          end
           return nil
         end
 
@@ -284,6 +239,7 @@ return {
       vim.lsp.enable 'rust_analyzer'
       vim.lsp.enable 'yamlls'
       vim.lsp.enable 'basedpyright'
+      vim.lsp.enable 'ruff'
 
       vim.keymap.set('n', '<leader>gd', vim.lsp.buf.definition, { desc = 'Go to definition' })
       vim.keymap.set('n', '<leader>pd', '<cmd>Lspsaga peek_definition<cr>', { desc = 'Peek definition' })
@@ -295,48 +251,31 @@ return {
         local angular_clients = vim.lsp.get_clients { bufnr = bufnr, name = 'angularls' }
         local has_angular = #angular_clients > 0 and angular_clients[1].server_capabilities.renameProvider
 
-        -- Wrap vim.lsp.buf.rename so Lspsaga's do_rename uses only one client
-        local orig_rename = vim.lsp.buf.rename
-        vim.lsp.buf.rename = function(new_name, opts)
-          vim.lsp.buf.rename = orig_rename
-          opts = opts or {}
-          if has_angular then
-            local client = angular_clients[1]
-            local params = vim.lsp.util.make_position_params(0, client.offset_encoding)
-            client:request('textDocument/prepareRename', params, function(err, result)
-              if err or not result then
-                orig_rename(
-                  new_name,
-                  vim.tbl_extend('force', opts, {
-                    filter = function(c)
-                      return c.name == 'ts_ls'
-                    end,
-                  })
-                )
-              else
-                orig_rename(
-                  new_name,
-                  vim.tbl_extend('force', opts, {
-                    filter = function(c)
-                      return c.name == 'angularls'
-                    end,
-                  })
-                )
-              end
-            end, bufnr)
-          else
-            orig_rename(
-              new_name,
-              vim.tbl_extend('force', opts, {
+        if has_angular then
+          local client = angular_clients[1]
+          local params = vim.lsp.util.make_position_params(0, client.offset_encoding)
+          client:request('textDocument/prepareRename', params, function(err, result)
+            if err or not result then
+              vim.lsp.buf.rename(nil, {
                 filter = function(c)
                   return c.name == 'ts_ls'
                 end,
               })
-            )
-          end
+            else
+              vim.lsp.buf.rename(nil, {
+                filter = function(c)
+                  return c.name == 'angularls'
+                end,
+              })
+            end
+          end, bufnr)
+        else
+          vim.lsp.buf.rename(nil, {
+            filter = function(c)
+              return c.name == 'ts_ls'
+            end,
+          })
         end
-
-        vim.cmd 'Lspsaga rename'
       end, { desc = 'Rename (angularls preferred)' })
 
       vim.keymap.set({ 'n', 'x' }, '<leader>ca', '<cmd>Lspsaga code_action<cr>', { desc = 'Code action' })

@@ -138,6 +138,7 @@ return {
         htmlangular = { 'prettierd' },
         json = { 'prettierd' },
         jsonc = { 'prettierd' },
+        python = { 'ruff_format', 'ruff_organize_imports' },
         rust = { 'rustfmt' },
         markdown = { 'prettierd' },
       },
