@@ -3,28 +3,37 @@ return {
   {
     'mason-org/mason.nvim',
     lazy = false,
-    opts = {
-      ensure_installed = {
-        'angular-language-server',
-        'eslint-lsp',
-        'typescript-language-server',
-        'lua-language-server',
-        'stylelint-lsp',
-        'json-lsp',
-        'yaml-language-server',
-        'prettierd',
-        'stylua',
-        'basedpyright',
-        'ruff',
-      },
-    },
+    opts = {},
   },
   {
     'mason-org/mason-lspconfig.nvim',
     lazy = false,
     opts = {
-      auto_install = true,
       automatic_enable = false,
+    },
+  },
+  {
+    'WhoIsSethDaniel/mason-tool-installer.nvim',
+    lazy = false,
+    dependencies = {
+      'mason-org/mason.nvim',
+      'mason-org/mason-lspconfig.nvim',
+    },
+    opts = {
+      ensure_installed = {
+        { 'angular-language-server', version = '22.0.1' },
+        'eslint-lsp',
+        'typescript-language-server',
+        'lua-language-server',
+        'stylelint-language-server',
+        { 'stylelint', version = '17.13.0' },
+        'json-lsp',
+        'yaml-language-server',
+        'prettierd',
+        'stylua',
+        { 'basedpyright', version = '1.39.3' },
+        { 'ruff', version = '0.15.13' },
+      },
     },
   },
   {
@@ -32,7 +41,13 @@ return {
     event = 'LspAttach',
     opts = {
       lightbulb = { enable = false },
-      symbol_in_winbar = { enable = false },
+      symbol_in_winbar = {
+        enable = true,
+        separator = ' › ',
+        show_file = true,
+        folder_level = 3,
+        color_mode = true,
+      },
     },
     config = function(_, opts)
       require('lspsaga').setup(opts)
@@ -136,30 +151,6 @@ return {
         }
       end
 
-      local stylelint_filetypes = { 'css', 'scss', 'typescript' }
-
-      -- Config must come before enable so servers start with the right settings
-      vim.lsp.config('stylelint_lsp', {
-        filetypes = stylelint_filetypes,
-        on_attach = function(client)
-          client.server_capabilities.documentHighlightProvider = false
-        end,
-        settings = {
-          stylelint = {
-            validate = stylelint_filetypes,
-          },
-        },
-        handlers = {
-          -- Stylelint LSP sends window/showMessageRequest prompts when it
-          -- can't parse inline styles (e.g. typing '@' in a TS file). The
-          -- default handler routes these through vim.ui.select, which
-          -- triggers telescope-ui-select. Suppress them here.
-          ['window/showMessageRequest'] = function(_, result)
-            return result
-          end,
-        },
-      })
-
       -- Disable willRename so only ts_ls handles file-move import updates from Oil,
       -- avoiding a race condition when both servers respond to the same rename.
       vim.lsp.config('angularls', {
@@ -231,15 +222,28 @@ return {
         end,
       })
 
+      -- Let the server resolve each project's local stylelint (so project
+      -- plugins/custom syntax like postcss-scss are available). Validate scss
+      -- in addition to the css/postcss defaults; formatting stays with conform.
+      vim.lsp.config('stylelint_lsp', {
+        filetypes = { 'css', 'scss', 'typescript' },
+        settings = {
+          stylelint = {
+            validate = { 'css', 'scss', 'typescript' },
+            snippet = { 'css', 'scss', 'typescript' },
+          },
+        },
+      })
+
       vim.lsp.enable 'eslint'
       vim.lsp.enable 'ts_ls'
       vim.lsp.enable 'lua_ls'
       vim.lsp.enable 'jsonls'
-      vim.lsp.enable 'stylelint_lsp'
       vim.lsp.enable 'rust_analyzer'
       vim.lsp.enable 'yamlls'
       vim.lsp.enable 'basedpyright'
       vim.lsp.enable 'ruff'
+      vim.lsp.enable 'stylelint_lsp'
 
       vim.keymap.set('n', '<leader>gd', vim.lsp.buf.definition, { desc = 'Go to definition' })
       vim.keymap.set('n', '<leader>pd', '<cmd>Lspsaga peek_definition<cr>', { desc = 'Peek definition' })

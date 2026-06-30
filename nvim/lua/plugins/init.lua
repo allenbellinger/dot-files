@@ -36,7 +36,7 @@ return {
         nerd_font_variant = 'mono',
       },
       completion = {
-        documentation = { auto_show = false, auto_show_delay_ms = 500 },
+        documentation = { auto_show = true, auto_show_delay_ms = 500 },
         accept = {
           auto_brackets = {
             enabled = false,
@@ -132,8 +132,8 @@ return {
         lua = { 'stylua' },
         javascript = { 'prettierd' },
         typescript = { 'prettierd' },
-        css = { 'stylelint' },
-        scss = { 'stylelint' },
+        css = { 'prettierd', 'stylelint' },
+        scss = { 'prettierd', 'stylelint' },
         html = { 'prettierd' },
         htmlangular = { 'prettierd' },
         json = { 'prettierd' },

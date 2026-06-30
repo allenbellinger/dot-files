@@ -24,9 +24,9 @@
       "command": ["npx", "-y", "@angular/cli", "mcp"],
       "enabled": false
     },
-    "slo-analyzer": {
+    "tbo_mcp": {
       "type": "remote",
-      "url": "http://127.0.0.1:8080/mcp",
+      "url": "http://localhost:8001/targeted-business-opportunities/mcp",
       "enabled": false
     }
   }

@@ -1,13 +1,16 @@
 return {
   {
-    'sainnhe/everforest',
+    'folke/tokyonight.nvim',
     lazy = false,
     priority = 1000,
-    config = function()
+    opts = {
+      style = 'night',
+    },
+    config = function(_, opts)
       -- Optionally configure and load the colorscheme
       -- directly inside the plugin declaration.
-      vim.g.everforest_background = 'hard'
-      vim.cmd.colorscheme 'everforest'
+      require('tokyonight').setup(opts)
+      vim.cmd.colorscheme 'tokyonight-night'
     end,
   },
   { -- Set lualine as statusline
@@ -16,7 +19,7 @@ return {
     opts = {
       options = {
         icons_enabled = true,
-        theme = 'everforest',
+        theme = 'tokyonight',
         component_separators = '|',
         section_separators = '',
         globalstatus = true,
