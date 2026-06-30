@@ -13,30 +13,6 @@ return {
     },
   },
   {
-    'WhoIsSethDaniel/mason-tool-installer.nvim',
-    lazy = false,
-    dependencies = {
-      'mason-org/mason.nvim',
-      'mason-org/mason-lspconfig.nvim',
-    },
-    opts = {
-      ensure_installed = {
-        { 'angular-language-server', version = '22.0.1' },
-        'eslint-lsp',
-        'typescript-language-server',
-        'lua-language-server',
-        'stylelint-language-server',
-        { 'stylelint', version = '17.13.0' },
-        'json-lsp',
-        'yaml-language-server',
-        'prettierd',
-        'stylua',
-        { 'basedpyright', version = '1.39.3' },
-        { 'ruff', version = '0.15.13' },
-      },
-    },
-  },
-  {
     'nvimdev/lspsaga.nvim',
     event = 'LspAttach',
     opts = {
