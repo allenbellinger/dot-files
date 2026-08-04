@@ -3,7 +3,7 @@ vim.opt.expandtab = true
 vim.opt.tabstop = 2
 vim.opt.softtabstop = 2
 vim.opt.shiftwidth = 2
-vim.opt.textwidth = 80
+vim.opt.textwidth = 0
 --Set <space> as the leader key See `:help mapleader` NOTE: Must happen before
 --plugins are required (otherwise wrong leader will be used)
 vim.g.mapleader = ' '

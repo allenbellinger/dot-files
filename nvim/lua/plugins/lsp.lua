@@ -4,6 +4,9 @@ return {
     'mason-org/mason.nvim',
     lazy = false,
     opts = {},
+    config = function(_, opts)
+      require('mason_pnpm').setup(opts)
+    end,
   },
   {
     'mason-org/mason-lspconfig.nvim',
@@ -220,6 +223,7 @@ return {
       vim.lsp.enable 'basedpyright'
       vim.lsp.enable 'ruff'
       vim.lsp.enable 'stylelint_lsp'
+      vim.lsp.enable 'nginx_language_server'
 
       vim.keymap.set('n', '<leader>gd', vim.lsp.buf.definition, { desc = 'Go to definition' })
       vim.keymap.set('n', '<leader>pd', '<cmd>Lspsaga peek_definition<cr>', { desc = 'Peek definition' })

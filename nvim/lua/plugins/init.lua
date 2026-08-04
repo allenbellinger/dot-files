@@ -121,6 +121,20 @@ return {
     cmd = 'Trouble',
   },
   {
+    'j-morano/buffer_manager.nvim',
+    dependencies = { 'nvim-lua/plenary.nvim' },
+    opts = {},
+    keys = {
+      {
+        '<leader>bm',
+        function()
+          require('buffer_manager.ui').toggle_quick_menu()
+        end,
+        desc = '[B]uffer [M]anager quick menu',
+      },
+    },
+  },
+  {
     'stevearc/conform.nvim',
     event = { 'BufWritePre' },
     cmd = { 'ConformInfo' },
@@ -141,6 +155,7 @@ return {
         python = { 'ruff_format', 'ruff_organize_imports' },
         rust = { 'rustfmt' },
         markdown = { 'prettierd' },
+        nginx = { 'nginxfmt' },
       },
     },
   },
