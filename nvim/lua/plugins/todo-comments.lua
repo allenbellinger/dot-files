@@ -18,7 +18,7 @@ return {
       end,
       desc = 'Previous todo comment',
     },
-    { '<leader>xt', ':Trouble todo toggle<cr>', desc = 'Todo (Trouble)' },
+    { '<leader>xt', '<cmd>Trouble todo toggle<cr>', desc = 'Todo (Trouble)' },
     {
       '<leader>st',
       function()

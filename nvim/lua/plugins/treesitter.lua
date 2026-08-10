@@ -8,6 +8,8 @@ return {
       require('nvim-treesitter').install {
         'angular',
         'css',
+        -- Diff buffers (diffview, gitsigns diffthis, `git diff` output).
+        'diff',
         'git_config',
         'git_rebase',
         'gitcommit',
@@ -27,15 +29,17 @@ return {
       }
 
       vim.api.nvim_create_autocmd('FileType', {
+        group = vim.api.nvim_create_augroup('TreesitterStart', { clear = true }),
         callback = function()
           if pcall(vim.treesitter.start) then
             vim.bo.indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
           end
         end,
       })
-
-      require('treesitter_highlight').setup()
     end,
+    keys = {
+      { '<leader>ti', vim.treesitter.inspect_tree, desc = '[T]reesitter [I]nspect tree' },
+    },
   },
   {
     'nvim-treesitter/nvim-treesitter-textobjects',

@@ -84,7 +84,7 @@ return {
       enabled = false,
     },
     keys = {
-      { '<leader>gb', ':GitBlameToggle<CR>', desc = 'Toggle Git blame' },
+      { '<leader>gb', '<cmd>GitBlameToggle<cr>', desc = 'Toggle Git blame' },
     },
   },
   {
@@ -105,5 +105,4 @@ return {
       },
     },
   },
-
 }

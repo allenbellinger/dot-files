@@ -1,14 +1,14 @@
 local MIN_RELEASE_AGE_MINUTES = 20160
 local MIN_RELEASE_AGE_SECONDS = MIN_RELEASE_AGE_MINUTES * 60
 
-local spawn = require('mason-core.spawn')
-local semver = require('mason-core.semver')
-local Purl = require('mason-core.purl')
+-- Resolved in M.setup(), after `require('mason').setup()` has run. Requiring
+-- mason-core at module scope makes this file explode if the load order shifts.
+local spawn, semver, Purl
 
 local cache = {}
 
 local function cache_key(pkg)
-  return pkg .. os.date('%Y-%m-%d')
+  return pkg .. os.date '%Y-%m-%d'
 end
 
 local function purl_to_npm(purl)
@@ -19,19 +19,24 @@ local function purl_to_npm(purl)
 end
 
 local function iso_to_epoch(iso)
-  local y, mo, d, h, mi, s = iso:match('(%d+)-(%d+)-(%d+)T(%d+):(%d+):(%d+)')
+  local y, mo, d, h, mi, s = iso:match '(%d+)-(%d+)-(%d+)T(%d+):(%d+):(%d+)'
   if not y then
     return nil
   end
-  local t = os.time({
+  local t = os.time {
     year = tonumber(y),
     month = tonumber(mo),
     day = tonumber(d),
     hour = tonumber(h),
     min = tonumber(mi),
     sec = tonumber(s),
-  })
-  return t - (os.difftime(os.time(os.date('!*t')), os.time(os.date('*t'))))
+  }
+  return t - (os.difftime(os.time(os.date '!*t'), os.time(os.date '*t')))
+end
+
+local function is_stable(version)
+  local sv = semver.parse(version):get_or_nil()
+  return sv ~= nil and sv.prerelease == nil
 end
 
 local function get_aged_versions_async(pkg)
@@ -39,7 +44,7 @@ local function get_aged_versions_async(pkg)
   if cache[key] ~= nil then
     return cache[key]
   end
-  local result = spawn.npm({ 'view', '--json', pkg, 'time' })
+  local result = spawn.npm { 'view', '--json', pkg, 'time' }
   if not result:is_success() then
     return nil
   end
@@ -52,7 +57,7 @@ local function get_aged_versions_async(pkg)
   for version, iso in pairs(times) do
     if version ~= 'created' and version ~= 'modified' and version ~= 'unpublished' and type(iso) == 'string' then
       local epoch = iso_to_epoch(iso)
-      if epoch and (now - epoch) >= MIN_RELEASE_AGE_SECONDS then
+      if epoch and (now - epoch) >= MIN_RELEASE_AGE_SECONDS and is_stable(version) then
         table.insert(versions, version)
       end
     end
@@ -93,8 +98,8 @@ local function make_compiler(mason_result, npm_compiler)
   return setmetatable({
     install = function(ctx, source)
       return mason_result.try(function(try)
-        try(ctx.spawn.pnpm({ 'init' }))
-        local package_json = try(mason_result.pcall(vim.json.decode, ctx.fs:read_file('package.json')))
+        try(ctx.spawn.pnpm { 'init' })
+        local package_json = try(mason_result.pcall(vim.json.decode, ctx.fs:read_file 'package.json'))
         package_json.name = '@mason/' .. package_json.name
         package_json.devEngines = nil
         package_json = try(mason_result.pcall(vim.json.encode, package_json, {}))
@@ -114,12 +119,12 @@ local function make_compiler(mason_result, npm_compiler)
         end
         ctx.stdio_sink:stdout(('Installing npm package %s@%s with pnpm\n'):format(source.package, version))
 
-        try(ctx.spawn.pnpm({
+        try(ctx.spawn.pnpm {
           'add',
           '--config.node-linker=hoisted',
           ('%s@%s'):format(source.package, version),
           source.extra_packages or vim.NIL,
-        }))
+        })
       end)
     end,
     get_versions = function(purl, source)
@@ -133,7 +138,7 @@ local function make_compiler(mason_result, npm_compiler)
 end
 
 local function patch_get_latest_version()
-  local AbstractPackage = require('mason-core.package.AbstractPackage')
+  local AbstractPackage = require 'mason-core.package.AbstractPackage'
   local original = AbstractPackage.get_latest_version
   AbstractPackage.get_latest_version = function(self)
     local purl = Purl.parse(self.spec.source.id):get_or_nil()
@@ -148,7 +153,7 @@ local function patch_get_latest_version()
 end
 
 local function warm_installed_cache()
-  local registry = require('mason-registry')
+  local registry = require 'mason-registry'
   local suspend_fns = {}
   for _, pkg in ipairs(registry.get_installed_packages()) do
     local purl = Purl.parse(pkg.spec.source.id):get_or_nil()
@@ -166,7 +171,7 @@ end
 
 local function wrap_update_with_warmup(registry)
   registry.update = function(callback)
-    local async = require('mason-core.async')
+    local async = require 'mason-core.async'
     local noop = function() end
     async.run(function()
       registry:emit('update:start', registry.sources)
@@ -191,13 +196,18 @@ local M = {}
 
 function M.setup(opts)
   require('mason').setup(opts)
-  local mason_compiler = require('mason-core.installer.compiler')
-  local mason_result = require('mason-core.result')
-  local npm_compiler = require('mason-core.installer.compiler.compilers.npm')
+
+  spawn = require 'mason-core.spawn'
+  semver = require 'mason-core.semver'
+  Purl = require 'mason-core.purl'
+
+  local mason_compiler = require 'mason-core.installer.compiler'
+  local mason_result = require 'mason-core.result'
+  local npm_compiler = require 'mason-core.installer.compiler.compilers.npm'
   mason_compiler.register_compiler('npm', make_compiler(mason_result, npm_compiler))
   patch_get_latest_version()
 
-  wrap_update_with_warmup(require('mason-registry'))
+  wrap_update_with_warmup(require 'mason-registry')
 end
 
 return M

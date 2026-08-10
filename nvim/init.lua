@@ -1,9 +1,3 @@
--- Default indentation (vim-sleuth will override per-buffer based on file contents)
-vim.opt.expandtab = true
-vim.opt.tabstop = 2
-vim.opt.softtabstop = 2
-vim.opt.shiftwidth = 2
-vim.opt.textwidth = 0
 --Set <space> as the leader key See `:help mapleader` NOTE: Must happen before
 --plugins are required (otherwise wrong leader will be used)
 vim.g.mapleader = ' '
@@ -15,51 +9,32 @@ vim.g.loaded_ruby_provider = 0
 vim.g.loaded_python3_provider = 0
 vim.g.loaded_node_provider = 0
 
-vim.opt.conceallevel = 1
-
--- Install package manager
---    https://github.com/folke/lazy.nvim
---    `:help lazy.nvim.txt` for more info
-local lazypath = vim.fn.stdpath 'data' .. '/lazy/lazy.nvim'
-if not vim.uv.fs_stat(lazypath) then
-  vim.fn.system {
-    'git',
-    'clone',
-    '--filter=blob:none',
-    'https://github.com/folke/lazy.nvim.git',
-    '--branch=stable', -- latest stable release
-    lazypath,
-  }
-end
-vim.opt.rtp:prepend(lazypath)
-vim.opt.relativenumber = true
-
-local local_config = vim.fn.expand '~/.config/nvim/init-local.lua'
-if vim.fn.filereadable(local_config) == 1 then
-  vim.cmd('source ' .. local_config)
-end
-
-require('lazy').setup('plugins', {
-  rocks = { enabled = false },
-  performance = {
-    rtp = {
-      disabled_plugins = {
-      },
-    },
-  },
-})
-
 -- [[ Setting options ]]
 -- See `:help vim.o`
+-- NOTE: options are set *before* lazy.nvim loads plugins, so that things like
+-- `termguicolors` are already in effect when a colorscheme is applied.
+
+-- Default indentation (vim-sleuth will override per-buffer based on file contents)
+vim.o.expandtab = true
+vim.o.tabstop = 2
+vim.o.softtabstop = 2
+vim.o.shiftwidth = 2
+vim.o.textwidth = 0
+
+vim.o.conceallevel = 1
+
+-- NOTE: You should make sure your terminal supports this
+vim.o.termguicolors = true
 
 -- Suppress common messages that noice used to filter
-vim.opt.shortmess:append('WcCS')
+vim.opt.shortmess:append 'WcCS'
 
 -- Set highlight on search
 vim.o.hlsearch = false
 
--- Make line numbers default
-vim.wo.number = true
+-- Line numbers
+vim.o.number = true
+vim.o.relativenumber = true
 
 -- Enable mouse mode
 vim.o.mouse = 'a'
@@ -77,17 +52,72 @@ vim.o.undofile = true
 
 -- Disable swap files and always continue when stale swaps exist
 vim.o.swapfile = false
+
+-- Case insensitive searching UNLESS /C or capital in search
+vim.o.ignorecase = true
+vim.o.smartcase = true
+
+-- Keep signcolumn on by default
+vim.o.signcolumn = 'yes'
+
+-- Decrease update time
+vim.o.updatetime = 250
+vim.o.timeout = true
+vim.o.timeoutlen = 300
+
+-- Auto-reload files changed outside of Neovim
+vim.o.autoread = true
+
+-- Install package manager
+--    https://github.com/folke/lazy.nvim
+--    `:help lazy.nvim.txt` for more info
+local lazypath = vim.fn.stdpath 'data' .. '/lazy/lazy.nvim'
+if not vim.uv.fs_stat(lazypath) then
+  vim.fn.system {
+    'git',
+    'clone',
+    '--filter=blob:none',
+    'https://github.com/folke/lazy.nvim.git',
+    '--branch=stable', -- latest stable release
+    lazypath,
+  }
+end
+vim.opt.rtp:prepend(lazypath)
+
+local local_config = vim.fn.expand '~/.config/nvim/init-local.lua'
+if vim.fn.filereadable(local_config) == 1 then
+  dofile(local_config)
+end
+
+require('lazy').setup('plugins', {
+  rocks = { enabled = false },
+  performance = {
+    rtp = {
+      disabled_plugins = {},
+    },
+  },
+})
+
+-- [[ Treesitter node-under-cursor highlight ]]
+require('ts_node_highlight').setup()
+
+-- [[ Swap files ]]
+local swap_group = vim.api.nvim_create_augroup('SwapHandling', { clear = true })
 vim.api.nvim_create_autocmd('SwapExists', {
+  group = swap_group,
   callback = function()
     vim.v.swapchoice = 'e'
   end,
 })
 
+-- `swapfile` is off, so Neovim never writes swaps itself; this only reaps files
+-- left behind by other editors or by older configs. Runs automatically on
+-- VeryLazy, and on demand via `:DeleteOldSwapFiles [days]`.
 local function delete_old_swap_files(days, notify_result)
   local cutoff = os.time() - (days * 24 * 60 * 60)
 
   local dirs = {
-    vim.fn.stdpath('state') .. '/swap',
+    vim.fn.stdpath 'state' .. '/swap',
     '/tmp',
     '/var/tmp',
   }
@@ -139,31 +169,20 @@ end, {
   desc = 'Delete stale swap files older than N days (default: 1)',
 })
 
-vim.api.nvim_create_autocmd('VimEnter', {
+-- Sweep once the UI is up rather than on VimEnter, so it never sits on the
+-- startup path. Silent unless it actually deletes something.
+vim.api.nvim_create_autocmd('User', {
+  pattern = 'VeryLazy',
+  group = swap_group,
+  once = true,
   callback = function()
     delete_old_swap_files(3, false)
   end,
 })
 
--- Case insensitive searching UNLESS /C or capital in search
-vim.o.ignorecase = true
-vim.o.smartcase = true
-
--- Keep signcolumn on by default
-vim.wo.signcolumn = 'yes'
-
--- Decrease update time
-vim.o.updatetime = 250
-vim.o.timeout = true
-vim.o.timeoutlen = 300
-
--- NOTE: You should make sure your terminal supports this
-vim.o.termguicolors = true
-
--- Auto-reload files changed outside of Neovim
-vim.o.autoread = true
+-- [[ Auto-reload files changed outside of Neovim ]]
 local auto_reload_group = vim.api.nvim_create_augroup('AutoReload', { clear = true })
-vim.api.nvim_create_autocmd({ 'FocusGained', 'BufEnter', 'CursorHold', 'CursorHoldI' }, {
+vim.api.nvim_create_autocmd({ 'FocusGained', 'BufEnter', 'TermClose', 'TermLeave' }, {
   group = auto_reload_group,
   callback = function()
     if vim.fn.mode() ~= 'c' and vim.bo.filetype ~= 'oil' then
@@ -183,14 +202,13 @@ vim.keymap.set('n', 'k', "v:count == 0 ? 'gk' : 'k'", { expr = true, silent = tr
 vim.keymap.set('n', 'j', "v:count == 0 ? 'gj' : 'j'", { expr = true, silent = true })
 
 -- [[ Highlight on yank ]]
--- See `:help vim.highlight.on_yank()`
-local highlight_group = vim.api.nvim_create_augroup('YankHighlight', { clear = true })
+-- See `:help vim.hl.on_yank()`
 vim.api.nvim_create_autocmd('TextYankPost', {
+  group = vim.api.nvim_create_augroup('YankHighlight', { clear = true }),
+  pattern = '*',
   callback = function()
     vim.hl.on_yank()
   end,
-  group = highlight_group,
-  pattern = '*',
 })
 
 -- [[ Diagnostic display configuration ]]
@@ -198,11 +216,11 @@ vim.diagnostic.config {
   virtual_text = {
     source = true,
     format = function(diagnostic)
-      if diagnostic.user_data and diagnostic.user_data.code then
-        return string.format('%s %s', diagnostic.user_data.code, diagnostic.message)
-      else
-        return diagnostic.message
+      local code = diagnostic.code or (diagnostic.user_data or {}).code
+      if code then
+        return string.format('%s %s', code, diagnostic.message)
       end
+      return diagnostic.message
     end,
   },
   signs = true,

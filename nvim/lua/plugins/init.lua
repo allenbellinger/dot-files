@@ -8,7 +8,6 @@ return {
       MiniIcons.mock_nvim_web_devicons()
     end,
   },
-  'Canop/nvim-bacon',
   {
     'kylechui/nvim-surround',
     event = 'VeryLazy',
@@ -107,6 +106,7 @@ return {
 
   {
     'folke/which-key.nvim',
+    event = 'VeryLazy',
     opts = {},
   },
   {

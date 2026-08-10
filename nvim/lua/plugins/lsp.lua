@@ -1,5 +1,4 @@
 return {
-  'joeveiga/ng.nvim',
   {
     'mason-org/mason.nvim',
     lazy = false,
@@ -13,28 +12,6 @@ return {
     lazy = false,
     opts = {
       automatic_enable = false,
-    },
-  },
-  {
-    'nvimdev/lspsaga.nvim',
-    event = 'LspAttach',
-    opts = {
-      lightbulb = { enable = false },
-      symbol_in_winbar = {
-        enable = true,
-        separator = ' › ',
-        show_file = true,
-        folder_level = 3,
-        color_mode = true,
-      },
-    },
-    config = function(_, opts)
-      require('lspsaga').setup(opts)
-      -- Hide rename reference highlights (they can stick after closing)
-      vim.api.nvim_set_hl(0, 'RenameMatch', {})
-    end,
-    dependencies = {
-      'nvim-treesitter/nvim-treesitter',
     },
   },
   {
@@ -133,14 +110,17 @@ return {
       -- Disable willRename so only ts_ls handles file-move import updates from Oil,
       -- avoiding a race condition when both servers respond to the same rename.
       vim.lsp.config('angularls', {
-        root_dir = angular_root_dir,
+        -- NOTE: native `vim.lsp.config` calls root_dir as (bufnr, on_dir), not
+        -- (fname) like nvim-lspconfig did. Getting this wrong is what forced the
+        -- old manual `ensure_angularls` FileType autocmd.
+        root_dir = function(bufnr, on_dir)
+          local dir = angular_root_dir(vim.api.nvim_buf_get_name(bufnr))
+          if dir then
+            on_dir(dir)
+          end
+        end,
         cmd = function(dispatchers, config)
           local root_dir = config and config.root_dir or nil
-          if type(root_dir) == 'function' then
-            local bufnr = vim.api.nvim_get_current_buf()
-            local fname = vim.api.nvim_buf_get_name(bufnr)
-            root_dir = root_dir(fname)
-          end
           if not root_dir or root_dir == '' then
             return nil
           end
@@ -170,37 +150,6 @@ return {
         end,
       })
 
-      local angularls_group = vim.api.nvim_create_augroup('AngularLspStart', { clear = true })
-      local function ensure_angularls(bufnr)
-        if not vim.api.nvim_buf_is_valid(bufnr) then
-          return
-        end
-        if #vim.lsp.get_clients { bufnr = bufnr, name = 'angularls' } > 0 then
-          return
-        end
-
-        local cfg = vim.lsp.config.angularls
-        local fname = vim.api.nvim_buf_get_name(bufnr)
-        if not cfg or fname == '' then
-          return
-        end
-
-        local root_dir = cfg.root_dir and cfg.root_dir(fname) or nil
-        if not root_dir then
-          return
-        end
-
-        vim.lsp.start(vim.tbl_deep_extend('force', cfg, { root_dir = root_dir }), { bufnr = bufnr })
-      end
-
-      vim.api.nvim_create_autocmd('FileType', {
-        group = angularls_group,
-        pattern = { 'typescript', 'html', 'typescriptreact', 'htmlangular' },
-        callback = function(args)
-          ensure_angularls(args.buf)
-        end,
-      })
-
       -- Let the server resolve each project's local stylelint (so project
       -- plugins/custom syntax like postcss-scss are available). Validate scss
       -- in addition to the css/postcss defaults; formatting stays with conform.
@@ -214,58 +163,87 @@ return {
         },
       })
 
-      vim.lsp.enable 'eslint'
-      vim.lsp.enable 'ts_ls'
-      vim.lsp.enable 'lua_ls'
-      vim.lsp.enable 'jsonls'
-      vim.lsp.enable 'rust_analyzer'
-      vim.lsp.enable 'yamlls'
-      vim.lsp.enable 'basedpyright'
-      vim.lsp.enable 'ruff'
-      vim.lsp.enable 'stylelint_lsp'
-      vim.lsp.enable 'nginx_language_server'
+      vim.lsp.enable {
+        'angularls',
+        'basedpyright',
+        'eslint',
+        'jsonls',
+        'lua_ls',
+        'nginx_language_server',
+        'ruff',
+        'rust_analyzer',
+        'stylelint_lsp',
+        'ts_ls',
+        'yamlls',
+      }
 
-      vim.keymap.set('n', '<leader>gd', vim.lsp.buf.definition, { desc = 'Go to definition' })
-      vim.keymap.set('n', '<leader>pd', '<cmd>Lspsaga peek_definition<cr>', { desc = 'Peek definition' })
-      vim.keymap.set('n', '<leader>gr', vim.lsp.buf.references, { desc = 'Go to references' })
-      vim.keymap.set('n', '<leader>gi', vim.lsp.buf.implementation, { desc = 'Go to implementation' })
-      vim.keymap.set('n', '<leader>gt', vim.lsp.buf.type_definition, { desc = 'Go to type definition' })
-      vim.keymap.set('n', '<leader>rn', function()
+      -- Rename via the built-in `vim.lsp.buf.rename`, which accepts a client
+      -- filter. Arbitrating between angularls and ts_ls matters because both
+      -- answer `textDocument/rename` and would produce duplicate edits. The
+      -- prompt is `vim.ui.input`, i.e. the Snacks input float.
+      local function rename(client_name)
+        vim.lsp.buf.rename(nil, client_name and { name = client_name } or nil)
+      end
+
+      local function smart_rename()
         local bufnr = vim.api.nvim_get_current_buf()
         local angular_clients = vim.lsp.get_clients { bufnr = bufnr, name = 'angularls' }
         local has_angular = #angular_clients > 0 and angular_clients[1].server_capabilities.renameProvider
 
         if has_angular then
+          -- angularls answers prepareRename only for symbols it actually owns
+          -- (template bindings, component members); fall back to ts_ls otherwise.
           local client = angular_clients[1]
           local params = vim.lsp.util.make_position_params(0, client.offset_encoding)
           client:request('textDocument/prepareRename', params, function(err, result)
-            if err or not result then
-              vim.lsp.buf.rename(nil, {
-                filter = function(c)
-                  return c.name == 'ts_ls'
-                end,
-              })
-            else
-              vim.lsp.buf.rename(nil, {
-                filter = function(c)
-                  return c.name == 'angularls'
-                end,
-              })
-            end
+            local target = (err or not result) and 'ts_ls' or 'angularls'
+            vim.schedule(function()
+              rename(target)
+            end)
           end, bufnr)
+        elseif #vim.lsp.get_clients { bufnr = bufnr, name = 'ts_ls' } > 0 then
+          rename 'ts_ls'
         else
-          vim.lsp.buf.rename(nil, {
-            filter = function(c)
-              return c.name == 'ts_ls'
-            end,
-          })
+          rename(nil)
         end
-      end, { desc = 'Rename (angularls preferred)' })
+      end
 
-      vim.keymap.set({ 'n', 'x' }, '<leader>ca', '<cmd>Lspsaga code_action<cr>', { desc = 'Code action' })
+      -- Buffer-local LSP keymaps: these used to be global, so `K` and friends
+      -- were bound even in buffers with no language server attached.
+      vim.api.nvim_create_autocmd('LspAttach', {
+        group = vim.api.nvim_create_augroup('LspKeymaps', { clear = true }),
+        callback = function(args)
+          local function map(mode, lhs, rhs, desc)
+            vim.keymap.set(mode, lhs, rhs, { buffer = args.buf, desc = 'LSP: ' .. desc })
+          end
 
-      vim.keymap.set('n', 'K', '<cmd>Lspsaga hover_doc<cr>', { desc = 'Hover doc' })
-      vim.keymap.set('n', '<leader>ws', vim.lsp.buf.workspace_symbol, { desc = 'Workspace symbols' })
+          map('n', '<leader>gd', function()
+            Snacks.picker.lsp_definitions()
+          end, 'Go to definition')
+          map('n', '<leader>gr', function()
+            Snacks.picker.lsp_references()
+          end, 'Go to references')
+          map('n', '<leader>gi', function()
+            Snacks.picker.lsp_implementations()
+          end, 'Go to implementation')
+          map('n', '<leader>gt', function()
+            Snacks.picker.lsp_type_definitions()
+          end, 'Go to type definition')
+          map('n', '<leader>ws', function()
+            Snacks.picker.lsp_workspace_symbols()
+          end, 'Workspace symbols')
+
+          map({ 'n', 'x' }, '<leader>ca', function()
+            require('tiny-code-action').code_action()
+          end, 'Code action')
+
+          map('n', '<leader>rn', smart_rename, 'Rename (angularls preferred)')
+          map('n', 'K', function()
+            vim.lsp.buf.hover { border = 'rounded' }
+          end, 'Hover doc')
+        end,
+      })
+
       vim.keymap.set(
         'n',
         '<leader>q',
