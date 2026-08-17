@@ -1,48 +1,26 @@
 return {
   {
-    'mason-org/mason.nvim',
-    lazy = false,
-    opts = {},
-    config = function(_, opts)
-      require('mason_pnpm').setup(opts)
-    end,
-  },
-  {
-    'mason-org/mason-lspconfig.nvim',
-    lazy = false,
-    opts = {
-      automatic_enable = false,
-    },
-  },
-  {
     'neovim/nvim-lspconfig',
-    lazy = false,
-    dependencies = {
-      'mason-org/mason.nvim',
-      'mason-org/mason-lspconfig.nvim',
-    },
+    event = { 'BufReadPre', 'BufNewFile' },
     config = function()
-      local fs = vim.fs
-      local uv = vim.uv
-
       local function path_exists(path)
-        return path and uv.fs_stat(path) ~= nil
+        return path and vim.uv.fs_stat(path) ~= nil
       end
 
       local function is_within(path, root)
-        local normalized_path = fs.normalize(path)
-        local normalized_root = fs.normalize(root)
+        local normalized_path = vim.fs.normalize(path)
+        local normalized_root = vim.fs.normalize(root)
         return normalized_path == normalized_root
           or normalized_path:sub(1, #normalized_root + 1) == normalized_root .. '/'
       end
 
       local function angular_root_dir(fname)
-        local workspace_root = fs.root(fname, { 'angular.json', 'nx.json' })
+        local workspace_root = vim.fs.root(fname, { 'angular.json', 'nx.json' })
         if not workspace_root then
           return nil
         end
 
-        local project_root = fs.root(fname, {
+        local project_root = vim.fs.root(fname, {
           'project.json',
           'tsconfig.app.json',
           'tsconfig.lib.json',
@@ -58,21 +36,46 @@ return {
 
       local angularls_warned = {}
 
+      -- Resolve binaries from the project's own `node_modules/.bin` when it
+      -- ships one, so the server stays in lockstep with the project's
+      -- Angular/stylelint version. Otherwise fall back to the global install
+      -- (pnpm global) -- these are editor tools, so most repos don't and
+      -- shouldn't carry them as devDependencies.
+      local function project_bin(root, name)
+        if not root then
+          return nil
+        end
+        local workspace_root = vim.fs.root(root, { 'package.json' }) or root
+        local bin = vim.fs.joinpath(workspace_root, 'node_modules', '.bin', name)
+        return path_exists(bin) and bin or nil
+      end
+
+      local function resolve_bin(root, name)
+        local local_bin = project_bin(root, name)
+        if local_bin then
+          return local_bin
+        end
+        local exe = vim.fn.exepath(name)
+        return exe ~= '' and exe or nil
+      end
+
       local function angularls_cmd(root_dir)
-        local ngserver_bin = vim.fn.exepath 'ngserver'
-        local workspace_root = fs.root(root_dir, { 'angular.json', 'nx.json' })
-        local node_modules = workspace_root and fs.joinpath(workspace_root, 'node_modules') or nil
+        local workspace_root = vim.fs.root(root_dir, { 'angular.json', 'nx.json' })
+        local node_modules = workspace_root and vim.fs.joinpath(workspace_root, 'node_modules') or nil
 
         if node_modules and not path_exists(node_modules) then
           node_modules = nil
         end
 
-        local angular_language_service = node_modules and fs.joinpath(node_modules, '@angular', 'language-service')
-        local typescript_lib = node_modules and fs.joinpath(node_modules, 'typescript', 'lib')
+        -- Project-local ngserver wins; otherwise the global pnpm install.
+        local ngserver_bin = resolve_bin(root_dir, 'ngserver')
+
+        local angular_language_service = node_modules and vim.fs.joinpath(node_modules, '@angular', 'language-service')
+        local typescript_lib = node_modules and vim.fs.joinpath(node_modules, 'typescript', 'lib')
 
         local missing = {}
-        if ngserver_bin == '' then
-          table.insert(missing, 'ngserver')
+        if not ngserver_bin then
+          table.insert(missing, 'ngserver (pnpm add -g @angular/language-server)')
         end
         if not node_modules then
           table.insert(missing, 'node_modules')
@@ -115,19 +118,20 @@ return {
         -- old manual `ensure_angularls` FileType autocmd.
         root_dir = function(bufnr, on_dir)
           local dir = angular_root_dir(vim.api.nvim_buf_get_name(bufnr))
-          if dir then
+          if dir and angularls_cmd(dir) then
             on_dir(dir)
           end
         end,
+        -- NOTE: a `cmd` function must return an rpc client; returning nil makes
+        -- `client:initialize()` index a nil `rpc`. Availability is therefore
+        -- decided in `root_dir` above (declining to call `on_dir`), and the
+        -- error below only guards a race where the tree changes in between --
+        -- `cmd` runs inside `Client.create`'s pcall, so it logs cleanly.
         cmd = function(dispatchers, config)
           local root_dir = config and config.root_dir or nil
-          if not root_dir or root_dir == '' then
-            return nil
-          end
-
-          local cmd = angularls_cmd(root_dir)
+          local cmd = root_dir ~= nil and root_dir ~= '' and angularls_cmd(root_dir) or nil
           if not cmd then
-            return nil
+            error('angularls: ngserver or Angular deps unavailable in ' .. tostring(root_dir))
           end
 
           return vim.lsp.rpc.start(cmd, dispatchers)
@@ -153,7 +157,30 @@ return {
       -- Let the server resolve each project's local stylelint (so project
       -- plugins/custom syntax like postcss-scss are available). Validate scss
       -- in addition to the css/postcss defaults; formatting stays with conform.
+      --
+      -- Capture nvim-lspconfig's own root_dir first: it already decides whether
+      -- a buffer is using stylelint at all (config file lookup, deno exclusion,
+      -- monorepo handling). We only add "and a server binary is resolvable".
+      local stylelint_root_dir = vim.lsp.config.stylelint_lsp.root_dir
+
       vim.lsp.config('stylelint_lsp', {
+        -- Gate startup here rather than in `cmd`: a `cmd` function must return
+        -- an rpc client, and returning nil crashes `client:initialize()`.
+        root_dir = function(bufnr, on_dir)
+          stylelint_root_dir(bufnr, function(dir)
+            if resolve_bin(dir, 'stylelint-language-server') then
+              on_dir(dir)
+            end
+          end)
+        end,
+        cmd = function(dispatchers, config)
+          local root_dir = config and config.root_dir or nil
+          local bin = resolve_bin(root_dir, 'stylelint-language-server')
+          if not bin then
+            error('stylelint_lsp: stylelint-language-server unavailable for ' .. tostring(root_dir))
+          end
+          return vim.lsp.rpc.start({ bin, '--stdio' }, dispatchers)
+        end,
         filetypes = { 'css', 'scss', 'typescript' },
         settings = {
           stylelint = {
@@ -234,7 +261,7 @@ return {
           end, 'Workspace symbols')
 
           map({ 'n', 'x' }, '<leader>ca', function()
-            require('tiny-code-action').code_action()
+            require('tiny-code-action').code_action {}
           end, 'Code action')
 
           map('n', '<leader>rn', smart_rename, 'Rename (angularls preferred)')
@@ -251,5 +278,26 @@ return {
         { desc = 'Open diagnostics list' }
       )
     end,
+  },
+  {
+    'nvim-java/nvim-java',
+    ft = 'java',
+    -- nvim-java self-manages jdtls/lombok/java-test/openjdk under
+    -- `stdpath('data')/nvim-java/packages`; it never used mason.
+    dependencies = {
+      'neovim/nvim-lspconfig',
+    },
+    config = function()
+      require('java').setup()
+      vim.lsp.enable 'jdtls'
+    end,
+  },
+  {
+    'rachartier/tiny-code-action.nvim',
+    event = 'LspAttach',
+    opts = {
+      backend = 'diffsofancy',
+      picker = 'snacks',
+    },
   },
 }

@@ -98,9 +98,6 @@ require('lazy').setup('plugins', {
   },
 })
 
--- [[ Treesitter node-under-cursor highlight ]]
-require('ts_node_highlight').setup()
-
 -- [[ Swap files ]]
 local swap_group = vim.api.nvim_create_augroup('SwapHandling', { clear = true })
 vim.api.nvim_create_autocmd('SwapExists', {

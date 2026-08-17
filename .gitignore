@@ -1,0 +1,9 @@
+# Credentials -- never commit these.
+# gcloud/ holds live OAuth credentials (credentials.db, access_tokens.db,
+# legacy_credentials). Secrets for Artifactory live in ~/.zsh_secrets, which is
+# outside this repo entirely.
+gcloud/
+
+# Backup files (may contain secrets)
+*.bak
+*.bak-*/

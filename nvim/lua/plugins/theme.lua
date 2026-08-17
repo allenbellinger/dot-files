@@ -1,5 +1,16 @@
 return {
   {
+    -- Icon provider. Priority ensures the nvim-web-devicons mock is installed
+    -- before consumers (lualine, oil, snacks) load.
+    'echasnovski/mini.icons',
+    lazy = false,
+    priority = 900,
+    config = function()
+      require('mini.icons').setup()
+      MiniIcons.mock_nvim_web_devicons()
+    end,
+  },
+  {
     'folke/tokyonight.nvim',
     lazy = false,
     priority = 1000,
@@ -7,8 +18,6 @@ return {
       style = 'night',
     },
     config = function(_, opts)
-      -- Optionally configure and load the colorscheme
-      -- directly inside the plugin declaration.
       require('tokyonight').setup(opts)
       vim.cmd.colorscheme 'tokyonight-night'
     end,
@@ -63,28 +72,6 @@ return {
       },
       tabline = {},
       extensions = { 'oil', 'lazy', 'quickfix' },
-    },
-  },
-  { -- Adds git releated signs to the gutter, as well as utilities for managing changes
-    'lewis6991/gitsigns.nvim',
-    opts = {
-      -- See `:help gitsigns.txt`
-      signs = {
-        add = { text = '+' },
-        change = { text = '~' },
-        delete = { text = '_' },
-        topdelete = { text = '‾' },
-        changedelete = { text = '~' },
-      },
-    },
-  },
-  {
-    'f-person/git-blame.nvim',
-    opts = {
-      enabled = false,
-    },
-    keys = {
-      { '<leader>gb', '<cmd>GitBlameToggle<cr>', desc = 'Toggle Git blame' },
     },
   },
   {

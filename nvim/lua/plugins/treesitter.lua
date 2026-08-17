@@ -4,11 +4,14 @@ return {
     'nvim-treesitter/nvim-treesitter',
     branch = 'main',
     build = ':TSUpdate',
+    -- Must load before `FileType` fires: the autocmd registered in `config` is
+    -- what starts highlighting. `BufReadPre` covers existing files,
+    -- `BufNewFile` covers new ones (neither fires for both).
+    event = { 'BufReadPre', 'BufNewFile' },
     config = function()
       require('nvim-treesitter').install {
         'angular',
         'css',
-        -- Diff buffers (diffview, gitsigns diffthis, `git diff` output).
         'diff',
         'git_config',
         'git_rebase',
@@ -44,6 +47,7 @@ return {
   {
     'nvim-treesitter/nvim-treesitter-textobjects',
     branch = 'main',
+    event = { 'BufReadPre', 'BufNewFile' },
     dependencies = { 'nvim-treesitter/nvim-treesitter' },
     config = function()
       local function select_textobject(capture)

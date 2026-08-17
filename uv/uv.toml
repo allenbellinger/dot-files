@@ -1,0 +1,15 @@
+# Route uv through the corporate Artifactory PyPI mirror (pypi.org is blocked).
+#
+# Credentials are NOT stored here. uv reads them from the environment using the
+# index name below:
+#   UV_INDEX_JBH_ARTIFACTORY_PYPI_USERNAME
+#   UV_INDEX_JBH_ARTIFACTORY_PYPI_PASSWORD
+# (see ~/.zshrc). The env var name is the index name uppercased with
+# non-alphanumeric characters replaced by underscores.
+#
+# `default = true` replaces PyPI entirely, matching what ~/.config/pip/pip.conf
+# used to do for pip before pip was removed.
+[[index]]
+name = "jbh-artifactory-pypi"
+url = "https://artifactory-prd.jbhunt.com/artifactory/api/pypi/pypi-repos/simple"
+default = true
