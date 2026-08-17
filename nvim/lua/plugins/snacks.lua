@@ -1,6 +1,9 @@
 return {
   'folke/snacks.nvim',
   lazy = false,
+  -- Loads before other start plugins: `Snacks.input` backs `vim.ui.input` and
+  -- the picker backs the LSP keymaps, both of which are wired up at startup.
+  priority = 1000,
   ---@type snacks.Config
   opts = function(_, opts)
     return vim.tbl_deep_extend('force', opts or {}, {
