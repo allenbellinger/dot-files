@@ -6,9 +6,6 @@
 #   UV_INDEX_JBH_ARTIFACTORY_PYPI_PASSWORD
 # (see ~/.zshrc). The env var name is the index name uppercased with
 # non-alphanumeric characters replaced by underscores.
-#
-# `default = true` replaces PyPI entirely, matching what ~/.config/pip/pip.conf
-# used to do for pip before pip was removed.
 [[index]]
 name = "jbh-artifactory-pypi"
 url = "https://artifactory-prd.jbhunt.com/artifactory/api/pypi/pypi-repos/simple"
