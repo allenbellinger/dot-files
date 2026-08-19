@@ -1,7 +1,5 @@
 return {
   {
-    -- Icon provider. Priority ensures the nvim-web-devicons mock is installed
-    -- before consumers (lualine, oil, snacks) load.
     'echasnovski/mini.icons',
     lazy = false,
     priority = 900,
@@ -22,9 +20,8 @@ return {
       vim.cmd.colorscheme 'tokyonight-night'
     end,
   },
-  { -- Set lualine as statusline
+  {
     'nvim-lualine/lualine.nvim',
-    -- See `:help lualine.txt`
     opts = {
       options = {
         icons_enabled = true,

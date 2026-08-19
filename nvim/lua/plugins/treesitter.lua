@@ -1,12 +1,8 @@
--- Highlight, edit, and navigate code
 return {
   {
     'nvim-treesitter/nvim-treesitter',
     branch = 'main',
     build = ':TSUpdate',
-    -- Must load before `FileType` fires: the autocmd registered in `config` is
-    -- what starts highlighting. `BufReadPre` covers existing files,
-    -- `BufNewFile` covers new ones (neither fires for both).
     event = { 'BufReadPre', 'BufNewFile' },
     config = function()
       require('nvim-treesitter').install {
@@ -40,9 +36,6 @@ return {
         end,
       })
     end,
-    keys = {
-      { '<leader>ti', vim.treesitter.inspect_tree, desc = '[T]reesitter [I]nspect tree' },
-    },
   },
   {
     'nvim-treesitter/nvim-treesitter-textobjects',

@@ -14,8 +14,6 @@ eval "$(zellij setup --generate-auto-start zsh)"
 
 eval "$(fnm env --use-on-cd --shell zsh)"
 
-export COREPACK_NPM_REGISTRY="https://artifactory-prd.jbhunt.com/artifactory/api/npm/npm-repos"
-export COREPACK_INTEGRITY_KEYS=0
 export HOMEBREW_NO_ENV_HINTS=1
 
 # Artifactory credentials live in ~/.zsh_secrets (chmod 600, not in the

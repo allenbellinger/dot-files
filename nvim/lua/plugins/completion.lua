@@ -34,12 +34,8 @@ return {
           lazydev = { name = 'LazyDev', module = 'lazydev.integrations.blink', score_offset = 100 },
           lsp = {
             transform_items = function(ctx, items)
-              -- Clamp angularls textEdit ranges to the cursor so completions
-              -- insert text instead of overwriting what comes after the cursor.
-              -- Angular LS returns ranges that can span multiple lines, so we
-              -- must clamp both the end line and end character.
-              local cursor_line = ctx.cursor[1] - 1 -- 0-indexed line (LSP uses 0-indexed)
-              local cursor_col = ctx.cursor[2] -- 0-indexed col (LSP uses 0-indexed)
+              local cursor_line = ctx.cursor[1] - 1
+              local cursor_col = ctx.cursor[2]
 
               local function clamp_range(range)
                 if not range then

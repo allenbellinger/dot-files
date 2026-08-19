@@ -282,8 +282,6 @@ return {
   {
     'nvim-java/nvim-java',
     ft = 'java',
-    -- nvim-java self-manages jdtls/lombok/java-test/openjdk under
-    -- `stdpath('data')/nvim-java/packages`; it never used mason.
     dependencies = {
       'neovim/nvim-lspconfig',
     },
