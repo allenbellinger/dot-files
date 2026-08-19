@@ -24,8 +24,6 @@ return {
     'nvim-lualine/lualine.nvim',
     opts = {
       options = {
-        icons_enabled = true,
-        theme = 'tokyonight',
         component_separators = '|',
         section_separators = '',
         globalstatus = true,
@@ -59,15 +57,6 @@ return {
         lualine_y = { 'filetype' },
         lualine_z = { 'location' },
       },
-      inactive_sections = {
-        lualine_a = {},
-        lualine_b = {},
-        lualine_c = { 'filename' },
-        lualine_x = { 'location' },
-        lualine_y = {},
-        lualine_z = {},
-      },
-      tabline = {},
       extensions = { 'oil', 'lazy', 'quickfix' },
     },
   },
@@ -76,7 +65,6 @@ return {
     event = 'VeryLazy',
     dependencies = { 'MunifTanjim/nui.nvim' },
     opts = {
-      notify = { enabled = true },
       lsp = {
         signature = { enabled = false },
         hover = { enabled = false },

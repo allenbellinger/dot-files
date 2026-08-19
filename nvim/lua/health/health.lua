@@ -11,7 +11,7 @@ return {
       ['basedpyright-langserver'] = 'brew install basedpyright',
       ['ruff'] = 'brew install ruff',
       ['ngserver'] = 'pnpm add -g @angular/language-server',
-      ['stylelint-language-server'] = 'pnpm add -g @stylelint/language-server',
+      ['stylelint-language-server'] = 'pnpm add -g stylelint-lsp',
       ['nginx-language-server'] = 'uv tool install nginx-language-server',
       ['nginxfmt'] = 'uv tool install nginxfmt',
       ['rust-analyzer'] = 'rustup component add rust-analyzer',

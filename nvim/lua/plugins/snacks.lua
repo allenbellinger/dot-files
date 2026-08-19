@@ -2,6 +2,7 @@ return {
   'folke/snacks.nvim',
   lazy = false,
   priority = 1000,
+  ---@module 'snacks'
   ---@type snacks.Config
   opts = {
     input = { enabled = true },
@@ -19,8 +20,7 @@ return {
             end
             vim.api.nvim_win_call(self.win, function()
               if vim.api.nvim_get_current_line() ~= '' then
-                vim.cmd 'stopinsert'
-                vim.cmd 'normal! gH'
+                vim.api.nvim_feedkeys(vim.keycode '<esc>gH', 'n', false)
               end
             end)
           end)
