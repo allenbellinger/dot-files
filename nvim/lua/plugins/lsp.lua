@@ -3,22 +3,17 @@ return {
     'neovim/nvim-lspconfig',
     event = { 'BufReadPre', 'BufNewFile' },
     config = function()
-      -- `cmd`, `root_dir` and `filetypes` come from nvim-lspconfig's bundled
-      -- `lsp/angularls.lua`, which probes both the project's `node_modules` and
-      -- the global ngserver's own, and passes `--angularCoreVersion`. That
-      -- matters here: the global ngserver is a different major than either
-      -- project pins, so the probe paths are what keep it in lockstep.
+      -- angularls needs no local overrides. nvim-lspconfig's bundled
+      -- `lsp/angularls.lua` probes both the project's `node_modules` and the
+      -- global ngserver's own, and passes `--angularCoreVersion`. That matters
+      -- here: the global ngserver is a different major than either project
+      -- pins, so the probe paths are what keep it in lockstep.
       --
       -- Do NOT narrow `root_dir` to the nearest project (project.json /
       -- tsconfig.*): upstream's `cmd` resolves probe paths and the Angular core
       -- version relative to `root_dir` *without* climbing to the workspace, so a
       -- nested root in an nx repo silently falls back to the global
       -- @angular/language-service and an empty version.
-      vim.lsp.config('angularls', {
-        on_attach = function(client)
-          client.server_capabilities.semanticTokensProvider = nil
-        end,
-      })
 
       -- `cmd` and `root_dir` come from upstream. Its root_dir already decides
       -- whether a buffer uses stylelint at all (config lookup, deno exclusion,
