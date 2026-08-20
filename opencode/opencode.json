@@ -23,11 +23,6 @@
       "type": "local",
       "command": ["npx", "-y", "@angular/cli", "mcp"],
       "enabled": false
-    },
-    "tbo_mcp": {
-      "type": "remote",
-      "url": "http://localhost:8001/targeted-business-opportunities/mcp",
-      "enabled": false
     }
   }
 }

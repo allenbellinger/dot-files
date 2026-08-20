@@ -15,8 +15,6 @@ vim.o.conceallevel = 1
 
 vim.o.termguicolors = true
 
-vim.o.winborder = 'rounded'
-
 vim.opt.shortmess:append 'WcCS'
 
 vim.o.hlsearch = false
@@ -63,6 +61,8 @@ end
 require('lazy').setup('plugins', {
   rocks = { enabled = false },
 })
+
+vim.cmd.colorscheme 'tokyonight'
 
 local auto_reload_group = vim.api.nvim_create_augroup('AutoReload', { clear = true })
 vim.api.nvim_create_autocmd({ 'FocusGained', 'BufEnter', 'TermClose', 'TermLeave' }, {

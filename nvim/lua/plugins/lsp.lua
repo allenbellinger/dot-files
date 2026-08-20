@@ -235,14 +235,6 @@ return {
         end
       end
 
-      -- Buffer-local LSP keymaps: these used to be global, so they were bound
-      -- even in buffers with no language server attached.
-      --
-      -- NOTE: the <leader>g* / <leader>ca maps intentionally duplicate the
-      -- built-in grr/gri/grt/gra -- they route to Snacks pickers and
-      -- tiny-code-action instead of the quickfix list. `K` is *not* mapped
-      -- here: Neovim binds it to `vim.lsp.buf.hover()` on attach already, and
-      -- the border comes from `winborder`.
       vim.api.nvim_create_autocmd('LspAttach', {
         group = vim.api.nvim_create_augroup('LspKeymaps', { clear = true }),
         callback = function(args)
@@ -271,6 +263,9 @@ return {
           end, 'Code action')
 
           map('n', '<leader>rn', smart_rename, 'Rename (angularls preferred)')
+          map('n', 'K', function()
+            vim.lsp.buf.hover { border = 'rounded' }
+          end, 'Hover')
         end,
       })
 
