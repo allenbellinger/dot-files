@@ -5,31 +5,18 @@ return {
     config = function()
       -- `cmd`, `root_dir` and `filetypes` come from nvim-lspconfig's bundled
       -- `lsp/angularls.lua`, which probes both the project's `node_modules` and
-      -- the global ngserver's own, and passes `--angularCoreVersion`.
+      -- the global ngserver's own, and passes `--angularCoreVersion`. That
+      -- matters here: the global ngserver is a different major than either
+      -- project pins, so the probe paths are what keep it in lockstep.
       --
       -- Do NOT narrow `root_dir` to the nearest project (project.json /
       -- tsconfig.*): upstream's `cmd` resolves probe paths and the Angular core
       -- version relative to `root_dir` *without* climbing to the workspace, so a
       -- nested root in an nx repo silently falls back to the global
       -- @angular/language-service and an empty version.
-      --
-      -- Disable willRename so only ts_ls handles file-move import updates from Oil,
-      -- avoiding a race condition when both servers respond to the same rename.
       vim.lsp.config('angularls', {
-        capabilities = {
-          workspace = {
-            fileOperations = {
-              willRename = vim.NIL,
-            },
-          },
-        },
         on_attach = function(client)
           client.server_capabilities.semanticTokensProvider = nil
-
-          local workspace = client.server_capabilities.workspace
-          if workspace and workspace.fileOperations then
-            workspace.fileOperations.willRename = false
-          end
         end,
       })
 
