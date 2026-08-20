@@ -154,33 +154,18 @@ return {
         end,
       })
 
-      -- Let the server resolve each project's local stylelint (so project
-      -- plugins/custom syntax like postcss-scss are available). Validate scss
-      -- in addition to the css/postcss defaults; formatting stays with conform.
+      -- `cmd` and `root_dir` come from upstream. Its root_dir already decides
+      -- whether a buffer uses stylelint at all (config lookup, deno exclusion,
+      -- monorepo handling) and lands on the package-manager root -- which is
+      -- what makes the *global* stylelint-language-server binary resolve each
+      -- project's *local* stylelint, so custom syntaxes (postcss-scss,
+      -- postcss-angular-inline) and plugins are available.
       --
-      -- Capture nvim-lspconfig's own root_dir first: it already decides whether
-      -- a buffer is using stylelint at all (config file lookup, deno exclusion,
-      -- monorepo handling). We only add "and a server binary is resolvable".
-      local stylelint_root_dir = vim.lsp.config.stylelint_lsp.root_dir
-
+      -- Only the filetypes/settings are ours: `typescript` is required because
+      -- Angular components keep their styles inline, and .stylelintrc.json maps
+      -- **/*.component.ts to the postcss-angular-inline syntax. Formatting stays
+      -- with conform.
       vim.lsp.config('stylelint_lsp', {
-        -- Gate startup here rather than in `cmd`: a `cmd` function must return
-        -- an rpc client, and returning nil crashes `client:initialize()`.
-        root_dir = function(bufnr, on_dir)
-          stylelint_root_dir(bufnr, function(dir)
-            if resolve_bin(dir, 'stylelint-language-server') then
-              on_dir(dir)
-            end
-          end)
-        end,
-        cmd = function(dispatchers, config)
-          local root_dir = config and config.root_dir or nil
-          local bin = resolve_bin(root_dir, 'stylelint-language-server')
-          if not bin then
-            error('stylelint_lsp: stylelint-language-server unavailable for ' .. tostring(root_dir))
-          end
-          return vim.lsp.rpc.start({ bin, '--stdio' }, dispatchers)
-        end,
         filetypes = { 'css', 'scss', 'typescript' },
         settings = {
           stylelint = {
