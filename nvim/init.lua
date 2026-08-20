@@ -62,7 +62,7 @@ require('lazy').setup('plugins', {
   rocks = { enabled = false },
 })
 
-vim.cmd.colorscheme 'tokyonight'
+vim.cmd.colorscheme 'nightfox'
 
 local auto_reload_group = vim.api.nvim_create_augroup('AutoReload', { clear = true })
 vim.api.nvim_create_autocmd({ 'FocusGained', 'BufEnter', 'TermClose', 'TermLeave' }, {
@@ -71,6 +71,13 @@ vim.api.nvim_create_autocmd({ 'FocusGained', 'BufEnter', 'TermClose', 'TermLeave
     if vim.fn.mode() ~= 'c' and vim.bo.filetype ~= 'oil' then
       vim.cmd 'checktime'
     end
+  end,
+})
+
+vim.api.nvim_create_autocmd('FileType', {
+  pattern = { 'typescript' },
+  callback = function()
+    vim.opt_local.iskeyword:append '#'
   end,
 })
 

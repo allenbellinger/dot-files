@@ -33,6 +33,20 @@ return {
               local cursor_line = ctx.cursor[1] - 1
               local cursor_col = ctx.cursor[2]
 
+              if vim.bo.filetype == 'typescript' then
+                for _, item in ipairs(items) do
+                  local te = item.textEdit
+                  if te and vim.startswith(item.label or '', '#') then
+                    for _, range in ipairs { te.replace, te.range } do
+                      local start = range and range.start
+                      if start and start.character > 0 then
+                        start.character = start.character - 1
+                      end
+                    end
+                  end
+                end
+              end
+
               local function clamp_range(range)
                 if not range then
                   return

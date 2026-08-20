@@ -8,14 +8,7 @@ return {
       MiniIcons.mock_nvim_web_devicons()
     end,
   },
-  {
-    'folke/tokyonight.nvim',
-    lazy = false,
-    priority = 1000,
-    opts = {
-      style = 'night',
-    },
-  },
+  { 'EdenEast/nightfox.nvim' },
   {
     'nvim-lualine/lualine.nvim',
     opts = {
