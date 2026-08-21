@@ -7,10 +7,6 @@ return {
     },
     cmd = 'Oil',
     opts = {
-      keymaps = {
-        ['<C-h>'] = false,
-        ['<M-h>'] = 'actions.select_split',
-      },
       view_options = {
         show_hidden = true,
         is_always_hidden = function(name)
