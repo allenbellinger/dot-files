@@ -10,12 +10,15 @@ return {
   },
   {
     'saghen/blink.cmp',
-    version = '1.*',
-    event = 'VeryLazy',
     dependencies = {
+      'saghen/blink.lib',
       'folke/lazydev.nvim',
     },
+    build = function()
+      require('blink.cmp').build():pwait()
+    end,
     opts = {
+      keymap = { preset = 'default' },
       completion = {
         documentation = { auto_show = true, auto_show_delay_ms = 0 },
         accept = {
@@ -25,13 +28,12 @@ return {
         },
       },
       sources = {
-        default = { 'lsp', 'path', 'lazydev' },
         providers = {
           lazydev = { name = 'LazyDev', module = 'lazydev.integrations.blink', score_offset = 100 },
           lsp = {
             transform_items = function(ctx, items)
-              local cursor_line = ctx.cursor[1] - 1
-              local cursor_col = ctx.cursor[2]
+              local cursor_line = ctx.pos.row
+              local cursor_col = ctx.pos.col
 
               -- Completing `this.#fo` used to insert `this.##foo`. With `#fo`
               -- already typed, tsserver returns no replacementSpan, so ts_ls
@@ -71,18 +73,15 @@ return {
 
               -- Both fixups share a pass: they touch disjoint clients.
               for _, item in ipairs(items) do
-                local client = item.client_id and vim.lsp.get_client_by_id(item.client_id)
-                if client then
-                  if client.name == 'ts_ls' and vim.startswith(item.label or '', '#') then
-                    restore_private_prefix(item)
-                  end
+                if item.client_name == 'ts_ls' and vim.startswith(item.label or '', '#') then
+                  restore_private_prefix(item)
+                end
 
-                  local te = item.textEdit
-                  if te and client.name == 'angularls' then
-                    clamp_range(te.range)
-                    clamp_range(te.insert)
-                    clamp_range(te.replace)
-                  end
+                local te = item.textEdit
+                if te and item.client_name == 'angularls' then
+                  clamp_range(te.range)
+                  clamp_range(te.insert)
+                  clamp_range(te.replace)
                 end
               end
               return items
@@ -90,7 +89,6 @@ return {
           },
         },
       },
-      signature = { enabled = true },
     },
   },
 }
