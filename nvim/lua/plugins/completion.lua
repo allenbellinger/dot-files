@@ -10,9 +10,9 @@ return {
   },
   {
     'saghen/blink.cmp',
+    event = { 'InsertEnter', 'CmdlineEnter' },
     dependencies = {
       'saghen/blink.lib',
-      'folke/lazydev.nvim',
     },
     build = function()
       require('blink.cmp').build():pwait()

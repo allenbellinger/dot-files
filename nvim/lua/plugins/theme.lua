@@ -8,9 +8,14 @@ return {
       MiniIcons.mock_nvim_web_devicons()
     end,
   },
-  { 'EdenEast/nightfox.nvim' },
+  {
+    'EdenEast/nightfox.nvim',
+    lazy = true,
+    priority = 1000,
+  },
   {
     'nvim-lualine/lualine.nvim',
+    event = 'VeryLazy',
     opts = {
       options = {
         component_separators = '|',
