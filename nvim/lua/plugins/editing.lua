@@ -20,7 +20,12 @@ return {
     event = { 'BufReadPost', 'BufNewFile' },
     config = function()
       require('illuminate').configure {
-        filetypes_denylist = { 'oil' },
+        filetypes_denylist = {
+          'oil',
+          'snacks_input',
+          'snacks_picker_input',
+          'snacks_dashboard',
+        },
       }
     end,
   },
