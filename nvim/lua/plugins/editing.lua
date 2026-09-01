@@ -25,6 +25,7 @@ return {
           'snacks_input',
           'snacks_picker_input',
           'snacks_dashboard',
+          'yaml',
         },
       }
     end,
