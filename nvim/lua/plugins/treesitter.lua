@@ -25,6 +25,7 @@ return {
         'toml',
         'typescript',
         'yaml',
+        'xml',
       }
 
       vim.api.nvim_create_autocmd('FileType', {
