@@ -60,10 +60,18 @@ return {
     dependencies = { 'MunifTanjim/nui.nvim' },
     opts = {
       lsp = {
-        signature = { enabled = false },
+        signature = { enabled = true },
         hover = { enabled = false },
       },
       routes = {
+        {
+          filter = { event = 'lsp', kind = 'progress', find = 'Validate documents jdtls' },
+          opts = { skip = true },
+        },
+        {
+          filter = { event = 'lsp', kind = 'progress', find = 'Publish Diagnostics jdtls' },
+          opts = { skip = true },
+        },
         {
           filter = { event = 'msg_show', kind = '', find = 'written' },
           opts = { skip = true },
