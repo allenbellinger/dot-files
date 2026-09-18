@@ -60,7 +60,6 @@ return {
     dependencies = { 'MunifTanjim/nui.nvim' },
     opts = {
       lsp = {
-        signature = { enabled = true },
         hover = { enabled = false },
       },
       routes = {
