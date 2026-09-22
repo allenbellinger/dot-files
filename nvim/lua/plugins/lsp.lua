@@ -105,10 +105,10 @@ return {
           end, 'Workspace symbols')
 
           map({ 'n', 'x' }, '<leader>ca', function()
-            require('tiny-code-action').code_action {}
+            vim.lsp.buf.code_action()
           end, 'Code action')
 
-          map('n', '<leader>rn', smart_rename, 'Rename (angularls preferred)')
+          map('n', '<leader>rn', smart_rename, 'Rename')
           map('n', 'K', function()
             vim.lsp.buf.hover { border = 'rounded' }
           end, 'Hover')
@@ -133,13 +133,5 @@ return {
       require('java').setup()
       vim.lsp.enable 'jdtls'
     end,
-  },
-  {
-    'rachartier/tiny-code-action.nvim',
-    event = 'LspAttach',
-    opts = {
-      backend = 'diffsofancy',
-      picker = 'snacks',
-    },
   },
 }
