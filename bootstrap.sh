@@ -107,7 +107,7 @@ BREW_PACKAGES=(
   lua-language-server           # lua_ls
   stylua                        # conform: lua
   stylelint                     # conform: css/scss/typescript
-  prettier                      # conform: js/ts/html/json/markdown/css
+  prettierd                     # conform: js/ts/html/json/markdown/css
   ruff                          # ruff LSP + conform: python
   basedpyright                  # basedpyright LSP: python
 )

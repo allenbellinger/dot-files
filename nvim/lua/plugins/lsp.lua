@@ -36,6 +36,16 @@ return {
         },
       })
 
+      vim.api.nvim_create_autocmd('LspAttach', {
+        group = vim.api.nvim_create_augroup('DisableTsLsSemanticTokens', { clear = true }),
+        callback = function(args)
+          local client = vim.lsp.get_client_by_id(args.data.client_id)
+          if client and client.name == 'ts_ls' then
+            client.server_capabilities.semanticTokensProvider = nil
+          end
+        end,
+      })
+
       vim.lsp.enable {
         'angularls',
         'basedpyright',
@@ -125,11 +135,38 @@ return {
   },
   {
     'nvim-java/nvim-java',
-    ft = 'java',
+    event = { 'BufReadPre', 'BufNewFile' },
     dependencies = {
       'neovim/nvim-lspconfig',
     },
     config = function()
+      local java_file = vim.fs.find({ 'pom.xml', 'build.gradle', 'build.gradle.kts' }, {
+        path = vim.api.nvim_buf_get_name(0),
+        upward = true,
+        type = 'file',
+      })[1]
+
+      if java_file then
+        local project_root = vim.fs.dirname(java_file)
+        local formatter = project_root .. '/config/eclipse-java-formatter.xml'
+
+        if vim.uv.fs_stat(formatter) then
+          vim.lsp.config('jdtls', {
+            settings = {
+              java = {
+                format = {
+                  enabled = true,
+                  settings = {
+                    url = vim.uri_from_fname(formatter),
+                    profile = 'Eclipse',
+                  },
+                },
+              },
+            },
+          })
+        end
+      end
+
       require('java').setup()
       vim.lsp.enable 'jdtls'
     end,
