@@ -3,29 +3,6 @@ return {
     'neovim/nvim-lspconfig',
     event = { 'BufReadPre', 'BufNewFile' },
     config = function()
-      -- angularls needs no local overrides. nvim-lspconfig's bundled
-      -- `lsp/angularls.lua` probes both the project's `node_modules` and the
-      -- global ngserver's own, and passes `--angularCoreVersion`. That matters
-      -- here: the global ngserver is a different major than either project
-      -- pins, so the probe paths are what keep it in lockstep.
-      --
-      -- Do NOT narrow `root_dir` to the nearest project (project.json /
-      -- tsconfig.*): upstream's `cmd` resolves probe paths and the Angular core
-      -- version relative to `root_dir` *without* climbing to the workspace, so a
-      -- nested root in an nx repo silently falls back to the global
-      -- @angular/language-service and an empty version.
-
-      -- `cmd` and `root_dir` come from upstream. Its root_dir already decides
-      -- whether a buffer uses stylelint at all (config lookup, deno exclusion,
-      -- monorepo handling) and lands on the package-manager root -- which is
-      -- what makes the *global* stylelint-language-server binary resolve each
-      -- project's *local* stylelint, so custom syntaxes (postcss-scss,
-      -- postcss-angular-inline) and plugins are available.
-      --
-      -- Only the filetypes/settings are ours: `typescript` is required because
-      -- Angular components keep their styles inline, and .stylelintrc.json maps
-      -- **/*.component.ts to the postcss-angular-inline syntax. Formatting stays
-      -- with conform.
       vim.lsp.config('stylelint_lsp', {
         filetypes = { 'css', 'scss', 'typescript' },
         settings = {
@@ -140,6 +117,12 @@ return {
       'neovim/nvim-lspconfig',
     },
     config = function()
+      local java_settings = {
+        completion = {
+          guessMethodArguments = 'off',
+        },
+      }
+
       local java_file = vim.fs.find({ 'pom.xml', 'build.gradle', 'build.gradle.kts' }, {
         path = vim.api.nvim_buf_get_name(0),
         upward = true,
@@ -151,21 +134,21 @@ return {
         local formatter = project_root .. '/config/eclipse-java-formatter.xml'
 
         if vim.uv.fs_stat(formatter) then
-          vim.lsp.config('jdtls', {
+          java_settings.format = {
+            enabled = true,
             settings = {
-              java = {
-                format = {
-                  enabled = true,
-                  settings = {
-                    url = vim.uri_from_fname(formatter),
-                    profile = 'Eclipse',
-                  },
-                },
-              },
+              url = vim.uri_from_fname(formatter),
+              profile = 'Eclipse',
             },
-          })
+          }
         end
       end
+
+      vim.lsp.config('jdtls', {
+        settings = {
+          java = java_settings,
+        },
+      })
 
       require('java').setup()
       vim.lsp.enable 'jdtls'
