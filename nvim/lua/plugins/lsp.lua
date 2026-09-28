@@ -19,6 +19,8 @@ return {
           local client = vim.lsp.get_client_by_id(args.data.client_id)
           if client and client.name == 'ts_ls' then
             client.server_capabilities.semanticTokensProvider = nil
+          elseif client and client.name == 'spring-boot' then
+            client.server_capabilities.completionProvider = nil
           end
         end,
       })
@@ -66,6 +68,54 @@ return {
         else
           rename(nil)
         end
+      end
+
+      local original_select = vim.ui.select
+
+      local function code_action_priority(item)
+        local action = item.action or item
+        local kind = action.kind or ''
+
+        if kind == 'source.addMissingImports' then
+          return 1
+        elseif action.isPreferred then
+          return 3
+        elseif kind:match '^quickfix' then
+          return 4
+        elseif kind:match '^refactor' then
+          return 5
+        elseif kind == 'source.organizeImports' then
+          return 6
+        end
+
+        return 7
+      end
+
+      vim.ui.select = function(items, opts, on_choice)
+        if not opts or opts.kind ~= 'codeaction' then
+          return original_select(items, opts, on_choice)
+        end
+
+        local ordered = {}
+        for index, item in ipairs(items) do
+          ordered[index] = { item = item, index = index }
+        end
+
+        table.sort(ordered, function(a, b)
+          local a_priority = code_action_priority(a.item)
+          local b_priority = code_action_priority(b.item)
+          if a_priority == b_priority then
+            return a.index < b.index
+          end
+          return a_priority < b_priority
+        end)
+
+        local sorted_items = {}
+        for index, entry in ipairs(ordered) do
+          sorted_items[index] = entry.item
+        end
+
+        return original_select(sorted_items, opts, on_choice)
       end
 
       vim.api.nvim_create_autocmd('LspAttach', {
@@ -151,6 +201,91 @@ return {
       })
 
       require('java').setup()
+
+      -- nvim-java derives JDTLS's -data path from vim.fn.getcwd(). Use the
+      -- detected project root so the same project has one workspace regardless
+      -- of where Neovim was launched.
+      local jdtls_cmd = vim.lsp.config.jdtls.cmd
+      vim.lsp.config('jdtls', {
+        cmd = function(dispatchers, config)
+          local root_dir = config.root_dir
+          if not root_dir then
+            return jdtls_cmd(dispatchers, config)
+          end
+
+          local cwd = vim.fn.getcwd()
+          vim.fn.chdir(root_dir)
+          local ok, result = xpcall(function()
+            return jdtls_cmd(
+              dispatchers,
+              vim.tbl_extend('force', config, {
+                cmd_cwd = root_dir,
+              })
+            )
+          end, debug.traceback)
+          vim.fn.chdir(cwd)
+
+          if not ok then
+            error(result)
+          end
+
+          return result
+        end,
+      })
+
+      -- spring-boot.nvim starts alongside jdtls and can issue its first
+      -- command before either client has finished initializing. Return a
+      -- request-only proxy so the plugin can wait without notifying that the
+      -- client is missing.
+      local spring_boot_util = require 'spring_boot.util'
+      local get_jdtls_client = spring_boot_util.get_client
+      local deferred_clients = { jdtls = true, ['spring-boot'] = true }
+
+      local function deferred_client(name)
+        return setmetatable({}, {
+          __index = function(_, key)
+            if key ~= 'request' then
+              return nil
+            end
+
+            return function(method, params, callback, bufnr)
+              local attempts = 0
+              local function request_when_ready()
+                local client = vim.lsp.get_clients({ name = name })[1]
+                if client and client.initialized then
+                  client.request(method, params, callback, bufnr)
+                  return
+                end
+
+                attempts = attempts + 1
+                if attempts < 100 then
+                  vim.defer_fn(request_when_ready, 50)
+                elseif callback then
+                  callback({ code = -1, message = name .. ' did not become available' }, nil)
+                else
+                  vim.notify(name .. ' did not become available for Spring Boot', vim.log.levels.WARN)
+                end
+              end
+
+              request_when_ready()
+            end
+          end,
+        })
+      end
+
+      spring_boot_util.get_client = function(name)
+        if not deferred_clients[name] then
+          return get_jdtls_client(name)
+        end
+
+        local client = vim.lsp.get_clients({ name = name })[1]
+        if client and client.initialized then
+          return client
+        end
+
+        return deferred_client(name)
+      end
+
       vim.lsp.enable 'jdtls'
     end,
   },
