@@ -22,6 +22,20 @@ return {
           elseif client and client.name == 'spring-boot' then
             client.server_capabilities.completionProvider = nil
           end
+
+          if client and client.name == 'jdtls' then
+            local method = 'workspace/executeClientCommand'
+            local original_handler = client.handlers[method] or vim.lsp.handlers[method]
+
+            client.handlers[method] = function(err, params, ctx)
+              if params.command == 'editor.action.triggerParameterHints' then
+                vim.lsp.commands[params.command](params.arguments, ctx)
+                return {}
+              end
+
+              return original_handler(err, params, ctx)
+            end
+          end
         end,
       })
 
