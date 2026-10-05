@@ -168,6 +168,9 @@ return {
     },
     config = function()
       local java_settings = {
+        signatureHelp = {
+          enabled = true,
+        },
         completion = {
           guessMethodArguments = 'off',
         },
@@ -253,7 +256,7 @@ return {
               local function request_when_ready()
                 local client = vim.lsp.get_clients({ name = name })[1]
                 if client and client.initialized then
-                  client.request(method, params, callback, bufnr)
+                  client:request(method, params, callback, bufnr)
                   return
                 end
 
