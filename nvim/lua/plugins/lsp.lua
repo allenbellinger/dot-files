@@ -190,27 +190,6 @@ return {
         },
       }
 
-      local java_file = vim.fs.find({ 'pom.xml', 'build.gradle', 'build.gradle.kts' }, {
-        path = vim.api.nvim_buf_get_name(0),
-        upward = true,
-        type = 'file',
-      })[1]
-
-      if java_file then
-        local project_root = vim.fs.dirname(java_file)
-        local formatter = project_root .. '/config/eclipse-java-formatter.xml'
-
-        if vim.uv.fs_stat(formatter) then
-          java_settings.format = {
-            enabled = true,
-            settings = {
-              url = vim.uri_from_fname(formatter),
-              profile = 'Eclipse',
-            },
-          }
-        end
-      end
-
       vim.lsp.config('jdtls', {
         settings = {
           java = java_settings,

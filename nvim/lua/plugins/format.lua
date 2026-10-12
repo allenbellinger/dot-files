@@ -19,7 +19,7 @@ return {
         jsonc = { 'prettierd' },
         python = { 'ruff_format', 'ruff_organize_imports' },
         rust = { 'rustfmt' },
-        java = { lsp_format = 'prefer' },
+        java = { 'google-java-format' },
         markdown = { 'prettierd' },
         nginx = { 'nginxfmt' },
       },

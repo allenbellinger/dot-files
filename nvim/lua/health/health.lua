@@ -16,6 +16,7 @@ return {
       ['nginxfmt'] = 'uv tool install nginxfmt',
       ['rust-analyzer'] = 'rustup component add rust-analyzer',
       ['rustfmt'] = 'rustup component add rustfmt',
+      ['google-java-format'] = 'brew install google-java-format',
     }
 
     for _, exe in ipairs(vim.fn.sort(vim.tbl_keys(tools))) do
