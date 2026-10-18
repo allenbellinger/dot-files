@@ -1,6 +1,7 @@
 return {
   {
     'stevearc/oil.nvim',
+    lazy = false,
     dependencies = { 'echasnovski/mini.icons' },
     keys = {
       { '-', '<cmd>Oil<cr>', desc = 'Open parent directory' },

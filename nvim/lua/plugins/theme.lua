@@ -1,7 +1,6 @@
 return {
   {
     'echasnovski/mini.icons',
-    lazy = false,
     priority = 900,
     config = function()
       require('mini.icons').setup()
@@ -15,7 +14,6 @@ return {
   },
   {
     'nvim-lualine/lualine.nvim',
-    event = 'VeryLazy',
     opts = {
       options = {
         component_separators = '|',

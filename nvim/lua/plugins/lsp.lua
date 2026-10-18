@@ -1,7 +1,6 @@
 return {
   {
     'neovim/nvim-lspconfig',
-    event = { 'BufReadPre', 'BufNewFile' },
     config = function()
       vim.lsp.config('stylelint_lsp', {
         filetypes = { 'css', 'scss', 'typescript' },
@@ -176,7 +175,7 @@ return {
   },
   {
     'nvim-java/nvim-java',
-    event = { 'BufReadPre', 'BufNewFile' },
+    ft = 'java',
     dependencies = {
       'neovim/nvim-lspconfig',
     },

@@ -3,7 +3,7 @@ return {
     'nvim-treesitter/nvim-treesitter',
     branch = 'main',
     build = ':TSUpdate',
-    event = { 'BufReadPre', 'BufNewFile' },
+    lazy = false,
     config = function()
       require('nvim-treesitter').install {
         'angular',
@@ -42,7 +42,6 @@ return {
   {
     'nvim-treesitter/nvim-treesitter-textobjects',
     branch = 'main',
-    event = { 'BufReadPre', 'BufNewFile' },
     dependencies = { 'nvim-treesitter/nvim-treesitter' },
     config = function()
       local function select_textobject(capture)

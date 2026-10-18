@@ -10,7 +10,6 @@ return {
   },
   {
     'David-Kunz/treesitter-unit',
-    event = 'VeryLazy',
     config = function()
       require('treesitter-unit').enable_highlighting()
     end,
