@@ -11,5 +11,11 @@
     "scrollbar": true,
     "thinking": "hide"
   },
+  "tabs": {
+    "mode": "off"
+  },
+  "keybinds": {
+    "agent.cycle": "tab"
+  },
   "animations": true
 }
