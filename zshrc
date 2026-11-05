@@ -5,9 +5,6 @@
 # because the brew-installed language servers depend on it; it is deliberately
 # kept off PATH so `node` always means "the fnm-selected version".
 
-# uv tool shims (nginx-language-server, nginxfmt)
-export PATH="$HOME/.local/bin:$PATH"
-
 autoload -Uz compinit && compinit
 
 eval "$(zellij setup --generate-auto-start zsh)"

@@ -44,7 +44,6 @@ return {
         'eslint',
         'jsonls',
         'lua_ls',
-        'nginx_language_server',
         'ruff',
         'rust_analyzer',
         'stylelint_lsp',

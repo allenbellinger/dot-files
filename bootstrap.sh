@@ -94,9 +94,6 @@ BREW_PACKAGES=(
   angular-cli  # `ng`
   nx           # `nx`
 
-  # --- Python toolchain ---
-  uv          # Python tool installer (nginx language server / formatter)
-
   # --- Rust toolchain ---
   rustup      # rustc/cargo/rust-analyzer/rustfmt/clippy
 
@@ -236,16 +233,6 @@ UVEOF
 else
   ok "uv index config: already present"
 fi
-
-info "Ensuring uv tools..."
-for tool in nginx-language-server nginxfmt; do
-  if command -v "$tool" &>/dev/null; then
-    ok "  $tool: already installed"
-  else
-    info "  Installing $tool..."
-    uv tool install "$tool"
-  fi
-done
 
 # --- Node-based language servers (via pnpm global) ---
 # These are editor tools, deliberately NOT added to project package.json files.

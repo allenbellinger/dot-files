@@ -21,7 +21,6 @@ return {
         rust = { 'rustfmt' },
         java = { 'google-java-format' },
         markdown = { 'prettierd' },
-        nginx = { 'nginxfmt' },
       },
     },
   },

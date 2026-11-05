@@ -74,13 +74,6 @@ vim.api.nvim_create_autocmd({ 'FocusGained', 'BufEnter', 'TermClose', 'TermLeave
   end,
 })
 
-vim.api.nvim_create_autocmd('FileType', {
-  pattern = { 'typescript' },
-  callback = function()
-    vim.opt_local.iskeyword:append '#'
-  end,
-})
-
 vim.keymap.set({ 'n', 'v' }, '<Space>', '<Nop>', { silent = true })
 
 vim.keymap.set('n', 'k', "v:count == 0 ? 'gk' : 'k'", { expr = true, silent = true })
